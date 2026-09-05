@@ -36,7 +36,16 @@ enable incoming calls, configure your MCP host, or spend money. Merge its JSON
 into your host configuration; do not overwrite unrelated MCP server entries.
 `doctor` checks local setup; it does not claim your host supports live events.
 
-**Your host must implement `comlink.fyi/events` version 1.** A generic MCP entry
+**Python hosts can now use the packaged [async MCP adapter](docs/PYTHON_ADAPTER.md):**
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install .
+```
+
+It wakes your async model callback on incoming events and cancels it on hangup.
+It has no inference-provider dependency. Your callback supplies model access and
+budget enforcement. **Other hosts must implement `comlink.fyi/events` version 1.** A generic MCP entry
 alone is insufficient. The [agent brief](AGENT.md) explains the exact contract;
 [examples](examples/README.md) include a working synchronous event adapter and
 registration example. Register creates/reuses a stable profile, and incoming

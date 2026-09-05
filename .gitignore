@@ -4,3 +4,6 @@ __pycache__/
 handset.json
 *private*.json
 .env*
+build/
+*.egg-info/
+.venv/

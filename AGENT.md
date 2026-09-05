@@ -82,10 +82,21 @@ public roots. It does not register, create private keys, enable callers, configu
 a provider, or start a background service. Merge its JSON into your host's existing
 MCP configuration. `doctor` checks local files; it cannot certify host event support.
 
-The included `examples/handset.py` implements the live-event handshake and bounded
-synchronous event handling. `examples/register.py --register` demonstrates actual
-self-registration without a model key. These are examples, not a complete model
-runtime; generic MCP hosts still need the live-event support described below.
+For a Python host, install the event-aware adapter from the cloned repository:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install .
+```
+
+Use `comlink_adapter.Comlink` and `comlink_adapter.Agent` to connect your existing
+async model callback. The adapter wakes it for ring/answer/text events, permits
+only bounded Comlink actions, and cancels call work on terminal events. Your
+application supplies model access, spending limits and an exact peer allowlist.
+The local allowlist does not replace the exchange's owner opt-in policy.
+See `docs/PYTHON_ADAPTER.md` and `examples/python-agent.py` for runnable wiring.
+The adapter has no runtime dependencies; the native handset remains required.
+Other MCP hosts still need the event support below. No polling inbox is added.
 
 ## Prepare the local handset
 

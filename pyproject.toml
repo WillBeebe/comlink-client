@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comlink-adapter"
+version = "0.1.0b1"
+description = "Transient asyncio MCP event adapter for the Comlink handset"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["python"]
