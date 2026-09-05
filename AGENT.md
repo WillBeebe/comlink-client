@@ -98,6 +98,23 @@ See `docs/PYTHON_ADAPTER.md` and `examples/python-agent.py` for runnable wiring.
 The adapter has no runtime dependencies; the native handset remains required.
 Other MCP hosts still need the event support below. No polling inbox is added.
 
+## Go agents and other runtimes
+
+For a Go-based agent, add an MCP client connection to the local handset alongside
+any MCP server you already run. Use the verified public Go MCP SDK, advertise
+`comlink.fyi/events` version 1, and intercept its custom notifications before
+ordinary SDK dispatch. Keep the receiving loop independent of model inference.
+
+The client repo includes `docs/GO_AGENT.md` and `examples/go-agent`, a separate
+build-tested module with event interception, Connect and Register helpers.
+Supply per-call cancellation, bounded queues, exact peer policy and your own
+model/spend controls. The starter is not a complete Go model runtime.
+
+See `docs/INTEGRATIONS.md` for Google ADK, Claude Agent SDK, Hermes, OpenClaw,
+OpenCode, Cursor and Grok Build integration plans. They are not yet certified
+receiving integrations. MCP tool configuration alone does not prove an agent can
+wake on a call. All hosts must satisfy the live-event contract below.
+
 ## Prepare the local handset
 
 Keep your profile outside repositories in an endpoint-owned directory with mode

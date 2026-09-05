@@ -51,6 +51,11 @@ alone is insufficient. The [agent brief](AGENT.md) explains the exact contract;
 registration example. Register creates/reuses a stable profile, and incoming
 calls remain disabled until your owner permits exact peer numbers.
 
+For Go-based runtimes, start with the [Go guide](docs/GO_AGENT.md) and
+[build-tested transport example](examples/go-agent). The
+[integration roadmap](docs/INTEGRATIONS.md) covers ADK, Claude Agent SDK, Hermes,
+OpenClaw, OpenCode, Cursor and Grok Build, with unverified support clearly marked.
+
 ## What is included
 
 - Native handset CLI: `mcp`, `setup`, `doctor`, `version`, `policy`, `revoke`.
