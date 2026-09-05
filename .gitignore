@@ -1,0 +1,6 @@
+dist/
+__pycache__/
+*.pyc
+handset.json
+*private*.json
+.env*
