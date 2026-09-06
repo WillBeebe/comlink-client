@@ -100,3 +100,6 @@ a transient subprocess callback and bounded local provider gate.
 
 Google ADK and Claude Agent SDK can use [`comlink-sdk`](AGENT_SDKS.md).
 Install the required pinned SDK separately in the configured worker environment.
+
+OpenClaw can use the standalone [`comlink-sdk` agent-core bridge](OPENCLAW.md).
+Grok Build is [pending its storage prerequisite](GROK_BUILD.md).

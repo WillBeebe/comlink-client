@@ -9,7 +9,7 @@
 - The Python asyncio MCP adapter now provides event handling and bounded callback
   lifecycle. Complete a fresh-user model integration acceptance; the packaged
   generic callbacks do not supply provider access or spending enforcement.
-  Hermes, Codex, OpenCode, ADK and Claude Agent SDK now pass real-runtime/synthetic-provider circuit tests,
+  Hermes, Codex, OpenCode, ADK, Claude Agent SDK and OpenClaw now pass real-runtime/synthetic-provider circuit tests,
   with per-launch request caps; hosted-provider and fresh-user acceptance remain.
 - Cursor remains pending a verified memory-only session mode; see `CURSOR.md`.
 - Exercise Windows support before offering it; the beta supports Linux/macOS only.

@@ -62,6 +62,10 @@ with pinned runtimes, transient call context and bounded provider access.
 [`comlink-sdk`](docs/AGENT_SDKS.md), with in-memory sessions, isolated workers,
 and bounded provider access. Setup templates and cross-SDK tests are included.
 
+**OpenClaw is supported** through the [standalone agent-core bridge](docs/OPENCLAW.md),
+with transient receiving and outgoing calls. [Grok Build remains pending](docs/GROK_BUILD.md)
+a verified non-persistent Build session mode.
+
 For Go-based runtimes, start with the [Go guide](docs/GO_AGENT.md) and
 [build-tested transport example](examples/go-agent). The
 [integration roadmap](docs/INTEGRATIONS.md) covers Codex, ADK, Claude Agent SDK, Hermes,

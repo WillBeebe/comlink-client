@@ -1,4 +1,4 @@
-"""Transient Codex/OpenCode/ADK/Claude SDK Comlink endpoints. No current IDE session is reused."""
+"""Transient Codex/OpenCode/ADK/Claude SDK/OpenClaw Comlink endpoints. No current IDE session is reused."""
 import argparse
 import asyncio
 from dataclasses import asdict
@@ -14,17 +14,25 @@ from .hermes import parse_actions
 from .inference_gate import InferenceGate
 
 SDK_PACKAGES={'adk':'google-adk','claude-sdk':'claude-agent-sdk'}
-VERSIONS={'adk':'2.8.0','claude-sdk':'0.2.152','codex':'codex-cli 0.153.0','opencode':'1.18.20'}
+VERSIONS={'openclaw':'2026.9.2','adk':'2.8.0','claude-sdk':'0.2.152','codex':'codex-cli 0.153.0','opencode':'1.18.20'}
 
 def validate(config):
     if os.name!='posix':raise ValueError('POSIX runtime required')
     required={'runtime','runtime_binary','base_url','model','api_key_file','allowed_peers','max_requests'}
-    optional={'binary','state','endpoint','roots','ca','role','dial','max_tokens','turn_seconds'}
+    optional={'binary','state','endpoint','roots','ca','role','dial','max_tokens','turn_seconds','runtime_package'}
     if not required <= config.keys() or config.keys()-required-optional: raise ValueError('missing/unknown configuration')
     if config['runtime'] not in VERSIONS: raise ValueError('unsupported runtime')
     for name in ('runtime_binary','api_key_file'):
         if not Path(config[name]).is_absolute(): raise ValueError('absolute paths required')
     version_args=[config['runtime_binary'],'--version']
+    if config['runtime']=='openclaw':
+        package=Path(config.get('runtime_package',''))
+        if not package.is_absolute():raise ValueError('absolute OpenClaw package path required')
+        metadata=json.loads((package/'package.json').read_text())
+        if metadata.get('name')!='openclaw' or metadata.get('version')!=VERSIONS['openclaw']:
+            raise ValueError('unverified OpenClaw package')
+        version_args=[config['runtime_binary'],str(Path(__file__).with_name('openclaw_worker.mjs')),'--version',str(package)]
+    elif 'runtime_package' in config:raise ValueError('runtime_package is OpenClaw only')
     if config['runtime'] in SDK_PACKAGES:
         version_args=[config['runtime_binary'],'-I','-c','from importlib.metadata import version; print(version('+repr(SDK_PACKAGES[config['runtime']])+'))']
     version=subprocess.check_output(version_args,stderr=subprocess.DEVNULL,timeout=10).decode().strip()
@@ -48,7 +56,12 @@ def validate(config):
 def command(config,scratch,gate):
     env={k:os.environ[k] for k in ('PATH','LANG','SYSTEMROOT','SSL_CERT_FILE','SSL_CERT_DIR') if k in os.environ}
     root=Path(scratch)
-    if config['runtime'] in SDK_PACKAGES:
+    if config['runtime']=='openclaw':
+        env.update(COMLINK_GATE_URL=gate.url,COMLINK_GATE_TOKEN=gate.token,
+            OPENCLAW_STATE_DIR=str(root/'state'),OPENCLAW_CONFIG_PATH=str(root/'config.json'),
+            OPENCLAW_LOG_LEVEL='silent',OTEL_SDK_DISABLED='true',DO_NOT_TRACK='1')
+        args=[config['runtime_binary'],str(Path(__file__).with_name('openclaw_worker.mjs')),config['runtime_package'],config['model']]
+    elif config['runtime'] in SDK_PACKAGES:
         env.update(PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OTEL_SDK_DISABLED='true',
             COMLINK_GATE_URL=gate.url,COMLINK_GATE_TOKEN=gate.token,
             CLAUDE_CONFIG_DIR=str(root/'claude'),CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC='1',
@@ -146,7 +159,7 @@ async def serve(config):
             task.cancel();await asyncio.gather(task,return_exceptions=True)
 
 def main():
-    p=argparse.ArgumentParser(description='Codex/OpenCode/ADK/Claude SDK transient Comlink receiver')
+    p=argparse.ArgumentParser(description='Codex/OpenCode/ADK/Claude SDK/OpenClaw transient Comlink receiver')
     p.add_argument('--config',required=True)
     a=p.parse_args()
     try:asyncio.run(serve(json.loads(Path(a.config).read_text())))

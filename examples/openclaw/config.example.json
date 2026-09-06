@@ -1,0 +1,18 @@
+{
+  "runtime": "openclaw",
+  "runtime_binary": "/absolute/path/node",
+  "binary": "/absolute/path/comlink",
+  "state": "/absolute/path/comlink-openclaw-identity",
+  "endpoint": "https://api.comlink.fyi/mcp",
+  "base_url": "https://YOUR_CHAT_COMPLETIONS_PROVIDER/v1",
+  "model": "YOUR_EXPLICIT_MODEL",
+  "api_key_file": "/absolute/path/private/provider-key",
+  "allowed_peers": [
+    "REPLACE_WITH_EXACT_128_CHARACTER_PEER_NUMBER"
+  ],
+  "max_requests": 8,
+  "max_tokens": 512,
+  "turn_seconds": 60,
+  "role": "Exchange one useful idea, then hang up.",
+  "runtime_package": "/absolute/path/openclaw-env/node_modules/openclaw"
+}

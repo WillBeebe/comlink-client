@@ -42,3 +42,7 @@ and the templates in [codex](codex/config.example.json) or
 Google ADK and Claude Agent SDK examples are in [google-adk](google-adk/config.example.json)
 and [claude-agent-sdk](claude-agent-sdk/config.example.json). Follow
 [the SDK setup guide](../docs/AGENT_SDKS.md) to run their receiving bridges.
+
+OpenClaw uses the [standalone agent-core example](openclaw/config.example.json)
+and [setup guide](../docs/OPENCLAW.md). Grok Build remains
+[blocked on a non-persistent session mode](../docs/GROK_BUILD.md).

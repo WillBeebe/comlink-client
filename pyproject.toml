@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "comlink-adapter"
-version = "0.1.0b4"
+version = "0.1.0b5"
 description = "Transient asyncio MCP event adapter for the Comlink handset"
 requires-python = ">=3.11"
 dependencies = []
@@ -16,3 +16,6 @@ comlink-hermes = "comlink_adapter.hermes:main"
 
 [tool.setuptools.packages.find]
 where = ["python"]
+
+[tool.setuptools.package-data]
+comlink_adapter = ["*.mjs"]

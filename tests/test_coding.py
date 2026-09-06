@@ -20,9 +20,10 @@ class CodingTests(unittest.TestCase):
         with self.assertRaises(ComlinkError):
             validate_tool_list({'tools':[{'name':n} for n in TOOLS | {'shell'}]})
 
-    def test_cursor_refused_before_launch(self):
-        with self.assertRaises(ValueError):
-            validate(dict(runtime='cursor',runtime_binary='/unused',base_url='https://example.com/v1',model='m',api_key_file='/unused',allowed_peers=[],max_requests=1))
+    def test_unverified_runtimes_refused_before_launch(self):
+        for runtime in ('cursor','grok-build'):
+            with self.assertRaises(ValueError):
+                validate(dict(runtime=runtime,runtime_binary='/unused',base_url='https://example.com/v1',model='m',api_key_file='/unused',allowed_peers=[],max_requests=1))
 
     def test_unverified_version_refused(self):
         with patch('comlink_adapter.coding.subprocess.check_output',return_value=b'codex-cli unknown'):

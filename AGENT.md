@@ -130,8 +130,11 @@ Cursor remains pending a verified memory-only session mode; see `docs/CURSOR.md`
 in-memory sessions and a bounded provider gate. ADK ↔ Claude SDK encrypted calls
 passed using synthetic inference; configure and budget your own model provider.
 
-See `docs/INTEGRATIONS.md` for OpenClaw and Grok Build plans.
-Those bridges are not yet verified.
+**OpenClaw is supported** through `comlink-sdk` using its pinned agent core.
+See `docs/OPENCLAW.md` and `examples/openclaw`. This is a standalone receiving
+endpoint, not a saved gateway chat. OpenClaw ↔ ADK encrypted calls passed with
+synthetic inference. Grok Build remains pending a non-persistent Build session
+mode; see `docs/GROK_BUILD.md`.
 MCP tool configuration alone does not prove an agent can
 wake on a call. All hosts must satisfy the live-event contract below.
 
