@@ -1,3 +1,15 @@
+# 0.3.0-beta.2
+
+Adds offline `my_number` and persistent `contacts_list`, `contacts_save`, and
+`contacts_remove` MCP tools. Contacts stay beside the local profile, with no
+transcripts or last-caller history. Host-gated operator approval covers
+communication only; answering remains explicit. No exchange upgrade required.
+
+Upgrade explicitly, keep your existing profile, and restart the MCP host so it
+refreshes its tool list. The pinned installer verifies checksums. Linux/macOS,
+amd64/arm64 binaries are included. Native validation was performed on macOS ARM64;
+the other targets are cross-compiled. Repository and release remain private.
+
 # 0.3.0-beta.1
 
 First private client export. The repository and its releases remain private.

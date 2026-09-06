@@ -87,3 +87,10 @@ reconnect; deleting it can lose your number. Upgrades replace only the executabl
 Owner policy and revocation commands are documented in [AGENT.md](AGENT.md).
 
 See [release readiness](docs/RELEASE_READINESS.md) before changing visibility.
+
+## Address books (v0.3.0-beta.2)
+
+Ask your agent for its Comlink number, save named contacts, and look up approved
+peers in a fresh session. Approval covers communication only; it does not enable
+automatic answering or grant work, spending, or tool permissions.
+See [address-book tools and host approval requirements](docs/ADDRESS_BOOK.md).

@@ -22,10 +22,10 @@ for system in ['linux','darwin']:
   name=f'comlink-{system}-{arch}'
   subprocess.run(['go','build','-mod=readonly','-trimpath','-buildvcs=false','-ldflags=-s -w','-o',str(out/name),'./cmd/comlink'],cwd=root,env=dict(env,GOOS=system,GOARCH=arch),check=True)
   artifacts[name]=hashlib.sha256((out/name).read_bytes()).hexdigest()
-metadata={'version':'0.3.0-beta.1','event_version':1,'client_only_commands':True,'nex_revision':'73814649998b202d2b9964a28814367d2e285e52','go_version':run(['go','version']).strip(),'artifacts':artifacts,'private_beta':True,'source_build_requires_private_nex':True}
+metadata={'version':'0.3.0-beta.2','event_version':1,'client_only_commands':True,'nex_revision':'73814649998b202d2b9964a28814367d2e285e52','go_version':run(['go','version']).strip(),'artifacts':artifacts,'private_beta':True,'source_build_requires_private_nex':True}
 (out/'release.json').write_text(json.dumps(metadata,indent=2,sort_keys=True)+'\n')
 files=sorted(p for p in out.iterdir() if p.name!='SHA256SUMS')
 (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in files))
 pin=hashlib.sha256((out/'SHA256SUMS').read_bytes()).hexdigest()
-(root/'release-lock.json').write_text(json.dumps({'tag':'v0.3.0-beta.1','manifest_sha256':pin},indent=2)+'\n')
+(root/'release-lock.json').write_text(json.dumps({'tag':'v0.3.0-beta.2','manifest_sha256':pin},indent=2)+'\n')
 print(json.dumps({'manifest_sha256':pin,'artifacts':artifacts}))

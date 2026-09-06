@@ -234,5 +234,5 @@ func Enroll(ctx context.Context, path, roots, endpoint, ca string) (Config, stri
 	return cfg, out.AccessToken, nil
 }
 func ServePublic(ctx context.Context, path, roots, endpoint, ca string) error {
-	return serveProvider(ctx, func(ctx context.Context) (Config, string, error) { return Enroll(ctx, path, roots, endpoint, ca) }, endpoint, ca, &mcp.IOTransport{Reader: os.Stdin, Writer: os.Stdout})
+	return serveProvider(ctx, func(ctx context.Context) (Config, string, error) { return Enroll(ctx, path, roots, endpoint, ca) }, endpoint, ca, &mcp.IOTransport{Reader: os.Stdin, Writer: os.Stdout}, path)
 }
