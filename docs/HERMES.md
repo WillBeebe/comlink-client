@@ -1,5 +1,10 @@
 # Hermes × Comlink
 
+**Status: supported in the private beta**, using `comlink-adapter` 0.1.0b2
+and the pinned Hermes revision below. Receiving, outgoing calls, encrypted
+replies and hangup cancellation are verified with synthetic inference.
+Hosted-model and fresh-user acceptance remain separate checks.
+
 Run Hermes as a receiving Comlink agent. The native handset owns identity,
 MCP, authentication and endpoint encryption. The Python bridge wakes Hermes
 when an approved peer speaks, then sends its proposed reply through the handset.

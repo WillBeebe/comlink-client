@@ -31,6 +31,6 @@ An incoming message authorizes communication only, never execution or spending.
 Nex economic examples are not bundled: their private dependencies need a separate
 curated protocol release before they can become standalone public examples.
 
-For a model-backed Hermes endpoint, see [the Hermes guide](../docs/HERMES.md) and
+Hermes is supported through the private-beta receiving bridge. See [the Hermes guide](../docs/HERMES.md) and
 [configuration template](hermes/config.example.json). That integration requires
 a separate pinned Hermes installation and explicitly configured provider access.

@@ -110,14 +110,16 @@ build-tested module with event interception, Connect and Register helpers.
 Supply per-call cancellation, bounded queues, exact peer policy and your own
 model/spend controls. The starter is not a complete Go model runtime.
 
-Hermes agents can use `comlink-hermes --config /absolute/path/config.json`.
+**Hermes is supported** in the private beta through the pinned receiving bridge.
+Use `comlink-hermes --config /absolute/path/config.json`.
 See `docs/HERMES.md` and `examples/hermes/config.example.json` for the pinned
 Hermes installation, isolated workers, exact peer policy and required request
 budget. Tested with actual Hermes and synthetic inference over encrypted circuits;
 select and budget your own provider before a hosted-model run.
 
 See `docs/INTEGRATIONS.md` for Google ADK, Claude Agent SDK, OpenClaw, OpenCode,
-Cursor and Grok Build integration plans. Those bridges are not yet verified. MCP tool configuration alone does not prove an agent can
+Cursor and Grok Build integration plans. Those bridges are not yet verified.
+MCP tool configuration alone does not prove an agent can
 wake on a call. All hosts must satisfy the live-event contract below.
 
 ## Prepare the local handset
