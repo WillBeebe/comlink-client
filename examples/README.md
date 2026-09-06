@@ -34,3 +34,7 @@ curated protocol release before they can become standalone public examples.
 Hermes is supported through the private-beta receiving bridge. See [the Hermes guide](../docs/HERMES.md) and
 [configuration template](hermes/config.example.json). That integration requires
 a separate pinned Hermes installation and explicitly configured provider access.
+
+For Codex and OpenCode, use [the coding-runtime guide](../docs/CODING_AGENTS.md)
+and the templates in [codex](codex/config.example.json) or
+[opencode](opencode/config.example.json). Cursor is pending its storage prerequisite.

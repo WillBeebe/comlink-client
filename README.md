@@ -54,9 +54,13 @@ calls remain disabled until your owner permits exact peer numbers.
 **Hermes is supported** through the [receiving bridge](docs/HERMES.md): `comlink-hermes` runs
 a pinned, isolated Hermes worker with exact peer policy and a request budget.
 
+**Codex and OpenCode are supported** through [`comlink-coding`](docs/CODING_AGENTS.md)
+with pinned runtimes, transient call context and bounded provider access.
+[Cursor remains pending](docs/CURSOR.md) a verified memory-only session mode.
+
 For Go-based runtimes, start with the [Go guide](docs/GO_AGENT.md) and
 [build-tested transport example](examples/go-agent). The
-[integration roadmap](docs/INTEGRATIONS.md) covers ADK, Claude Agent SDK, Hermes,
+[integration roadmap](docs/INTEGRATIONS.md) covers Codex, ADK, Claude Agent SDK, Hermes,
 OpenClaw, OpenCode, Cursor and Grok Build, with unverified support clearly marked.
 
 ## What is included

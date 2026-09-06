@@ -6,8 +6,9 @@ p=argparse.ArgumentParser(description='Maintainer-only isolated local exchange a
 p.add_argument('--server',required=True)
 p.add_argument('--binary',required=True)
 p.add_argument('--switch',required=True)
+p.add_argument('--coding-config', help='two synthetic-provider coding runtime configurations')
 p.add_argument('--hermes-config', help='maintainer synthetic-provider config; optional')
-args=p.parse_args();hermes_config=args.hermes_config;full=args.server;binary=args.binary;switch=args.switch
+args=p.parse_args();hermes_config=args.hermes_config;coding_config=args.coding_config;full=args.server;binary=args.binary;switch=args.switch
 async def exercise(d,endpoint):
     states=[d/'a',d/'b'];numbers=[]
     for state in states:
@@ -21,6 +22,11 @@ async def exercise(d,endpoint):
         from comlink_adapter.hermes import HermesBridge
         cfg=json.loads(Path(hermes_config).read_text())
         bridges=[HermesBridge(dict(cfg, allowed_peers=[numbers[1-i]])) for i in range(2)]
+    if coding_config:
+        from comlink_adapter.coding import CodingBridge
+        cfg=json.loads(Path(coding_config).read_text())
+        assert len(cfg)==2
+        bridges=[CodingBridge(dict(cfg[i],allowed_peers=[numbers[1-i]])) for i in range(2)]
     def handler(i):
         async def respond(event,context):
             if bridges:
@@ -54,15 +60,18 @@ async def exercise(d,endpoint):
             for task in tasks:task.cancel()
             await asyncio.gather(*tasks,return_exceptions=True)
     for state in states:subprocess.run([binary,'revoke','--file',str(state/'handset.json'),'--roots',str(d/'roots.json'),'--endpoint',endpoint],check=True,stdout=subprocess.DEVNULL)
-    print(('Hermes local-provider circuit. ' if bridges else '') + 'PASS: packaged async adapter woke both receivers, exchanged encrypted dependent replies, initiated both directions, cleared call state, and revoked both identities; no paid inference.')
-with tempfile.TemporaryDirectory(prefix='comlink-adapter-smoke-') as tmp:
-    d=Path(tmp);s=socket.socket();s.bind(('127.0.0.1',0));port=s.getsockname()[1];s.close();endpoint=f'http://127.0.0.1:{port}/mcp'
-    subprocess.run([full,'mother','--file',str(d/'issuer.json')],check=True,stdout=subprocess.DEVNULL)
-    args=['--issuer-file',str(d/'issuer.json'),'--prefix','localtst','--audience',endpoint,'--state',str(d/'authority')]
-    (d/'roots.json').write_bytes(subprocess.check_output([full,'public-init',*args]))
-    server=subprocess.Popen([full,'serve-public',*args,'--listen',f'127.0.0.1:{port}','--switch',switch],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=dict(os.environ,ERL_FLAGS='+S 2:2'))
-    try:time.sleep(2);asyncio.run(exercise(d,endpoint))
-    finally:
-        server.terminate()
-        try:server.wait(timeout=10)
-        except subprocess.TimeoutExpired:server.kill();server.wait()
+    print(('Model-runtime local-provider circuit. ' if bridges else '') + 'PASS: packaged async adapter woke both receivers, exchanged encrypted dependent replies, initiated both directions, cleared call state, and revoked both identities; no paid inference.')
+def main():
+    with tempfile.TemporaryDirectory(prefix='comlink-adapter-smoke-') as tmp:
+        d=Path(tmp);s=socket.socket();s.bind(('127.0.0.1',0));port=s.getsockname()[1];s.close();endpoint=f'http://127.0.0.1:{port}/mcp'
+        subprocess.run([full,'mother','--file',str(d/'issuer.json')],check=True,stdout=subprocess.DEVNULL)
+        args=['--issuer-file',str(d/'issuer.json'),'--prefix','localtst','--audience',endpoint,'--state',str(d/'authority')]
+        (d/'roots.json').write_bytes(subprocess.check_output([full,'public-init',*args]))
+        server=subprocess.Popen([full,'serve-public',*args,'--listen',f'127.0.0.1:{port}','--switch',switch],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=dict(os.environ,ERL_FLAGS='+S 2:2'))
+        try:time.sleep(2);asyncio.run(exercise(d,endpoint))
+        finally:
+            server.terminate()
+            try:server.wait(timeout=10)
+            except subprocess.TimeoutExpired:server.kill();server.wait()
+
+if __name__=='__main__':main()

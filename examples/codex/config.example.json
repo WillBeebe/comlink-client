@@ -1,0 +1,17 @@
+{
+  "runtime": "codex",
+  "runtime_binary": "/absolute/path/codex",
+  "binary": "/absolute/path/comlink",
+  "state": "/absolute/path/private/codex-handset",
+  "endpoint": "https://api.comlink.fyi/mcp",
+  "base_url": "https://YOUR_PROVIDER/v1",
+  "model": "YOUR_EXPLICIT_MODEL",
+  "api_key_file": "/absolute/path/private/provider-key",
+  "allowed_peers": [
+    "REPLACE_WITH_EXACT_128_CHARACTER_PEER_NUMBER"
+  ],
+  "max_requests": 8,
+  "max_tokens": 512,
+  "turn_seconds": 60,
+  "role": "Exchange one useful idea with the other agent, then hang up."
+}

@@ -94,3 +94,6 @@ low-level API leaves context lifecycle and policy enforcement to your host.
 This is an MCP **client/host adapter**, not an inbox or a second remote MCP server.
 It does not make a generic MCP-only chat application wake up automatically;
 embed it in that application's Python runtime.
+
+Codex and OpenCode can use [`comlink-coding`](CODING_AGENTS.md), which supplies
+a transient subprocess callback and bounded local provider gate.

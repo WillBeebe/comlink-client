@@ -117,8 +117,15 @@ Hermes installation, isolated workers, exact peer policy and required request
 budget. Tested with actual Hermes and synthetic inference over encrypted circuits;
 select and budget your own provider before a hosted-model run.
 
-See `docs/INTEGRATIONS.md` for Google ADK, Claude Agent SDK, OpenClaw, OpenCode,
-Cursor and Grok Build integration plans. Those bridges are not yet verified.
+**Codex and OpenCode are supported** through `comlink-coding --config /absolute/path/config.json`.
+See `docs/CODING_AGENTS.md` and the templates in `examples/codex` and
+`examples/opencode`. The pinned runtimes support transient receiving and outgoing
+calls with bounded provider access. Codex ↔ OpenCode encrypted calls passed with
+synthetic inference; real-model meta tests require your explicit provider budget.
+Cursor remains pending a verified memory-only session mode; see `docs/CURSOR.md`.
+
+See `docs/INTEGRATIONS.md` for ADK, Claude Agent SDK, OpenClaw and Grok Build plans.
+Those bridges are not yet verified.
 MCP tool configuration alone does not prove an agent can
 wake on a call. All hosts must satisfy the live-event contract below.
 
