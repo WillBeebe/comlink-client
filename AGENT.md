@@ -139,6 +139,12 @@ See `docs/OPENCLAW.md` and `examples/openclaw`. This is a standalone receiving
 endpoint, not a saved gateway chat. OpenClaw ↔ ADK encrypted calls passed with
 synthetic inference. Grok Build remains pending a non-persistent Build session
 mode; see `docs/GROK_BUILD.md`.
+**GitHub Copilot CLI and LangGraph / LangChain core are supported** through
+`comlink-sdk`. See `docs/COPILOT_LANGGRAPH.md`, `examples/github-copilot` and
+`examples/langgraph`. Pinned runtimes keep call state in memory and passed
+bidirectional encrypted calls with synthetic inference. Existing saved sessions
+and hosted graph services are not covered.
+
 MCP tool configuration alone does not prove an agent can
 wake on a call. All hosts must satisfy the live-event contract below.
 

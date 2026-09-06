@@ -115,10 +115,10 @@ async def exercise(cfg):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--openclaw-node');p.add_argument('--openclaw-package');p.add_argument('--codex');p.add_argument('--opencode');p.add_argument('--adk-python');p.add_argument('--claude-python')
+    p.add_argument('--copilot-python');p.add_argument('--copilot-cli');p.add_argument('--langgraph-python');p.add_argument('--openclaw-node');p.add_argument('--openclaw-package');p.add_argument('--codex');p.add_argument('--opencode');p.add_argument('--adk-python');p.add_argument('--claude-python')
     for n in ('server','binary','switch'):p.add_argument('--'+n)
     a=p.parse_args()
-    selected=[(r,b) for r,b in [('openclaw',a.openclaw_node),('codex',a.codex),('opencode',a.opencode),('adk',a.adk_python),('claude-sdk',a.claude_python)] if b]
+    selected=[(r,b) for r,b in [('copilot',a.copilot_python),('langgraph',a.langgraph_python),('openclaw',a.openclaw_node),('codex',a.codex),('opencode',a.opencode),('adk',a.adk_python),('claude-sdk',a.claude_python)] if b]
     if not selected:p.error('select at least one runtime')
     if any((a.server,a.binary,a.switch)) and not all((a.server,a.binary,a.switch)):p.error('all exchange paths required')
     server=ThreadingHTTPServer(('127.0.0.1',0),Provider);threading.Thread(target=server.serve_forever,daemon=True).start()
@@ -127,6 +127,7 @@ def main():
             key=Path(d)/'key';key.write_text('synthetic-key');key.chmod(0o600)
             configs=[dict(runtime=n,runtime_binary=binary,base_url=f'http://127.0.0.1:{server.server_port}/v1',model='fixture-model',api_key_file=str(key),allowed_peers=['a'*128],max_requests=8,turn_seconds=60) for n,binary in selected]
             for cfg in configs:
+                if cfg['runtime']=='copilot':cfg['runtime_cli']=a.copilot_cli
                 if cfg['runtime']=='openclaw':cfg['runtime_package']=a.openclaw_package
                 asyncio.run(exercise(cfg))
             if a.server:

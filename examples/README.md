@@ -49,3 +49,7 @@ and [setup guide](../docs/OPENCLAW.md). Grok Build remains
 
 [Claude Code / Claude CLI](claude-code/README.md) has a small setup example
 using the verified Claude SDK bridge and bundled executable.
+
+[Copilot CLI](github-copilot/config.example.json) and
+[LangGraph](langgraph/config.example.json) use the
+[transient SDK setup guide](../docs/COPILOT_LANGGRAPH.md).

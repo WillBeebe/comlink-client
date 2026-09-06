@@ -1,4 +1,4 @@
-"""Transient Codex/OpenCode/ADK/Claude SDK/OpenClaw Comlink endpoints. No current IDE session is reused."""
+"""Transient model-runtime Comlink endpoints. No current IDE session is reused."""
 import argparse
 import asyncio
 from dataclasses import asdict
@@ -13,13 +13,13 @@ from . import Action, Agent, Comlink, ComlinkError
 from .hermes import parse_actions
 from .inference_gate import InferenceGate
 
-SDK_PACKAGES={'adk':'google-adk','claude-sdk':'claude-agent-sdk'}
-VERSIONS={'openclaw':'2026.9.2','adk':'2.8.0','claude-sdk':'0.2.152','codex':'codex-cli 0.153.0','opencode':'1.18.20'}
+SDK_PACKAGES={'langgraph':'langgraph','copilot':'github-copilot-sdk','adk':'google-adk','claude-sdk':'claude-agent-sdk'}
+VERSIONS={'langgraph':'1.2.11','copilot':'1.0.13','openclaw':'2026.9.2','adk':'2.8.0','claude-sdk':'0.2.152','codex':'codex-cli 0.153.0','opencode':'1.18.20'}
 
 def validate(config):
     if os.name!='posix':raise ValueError('POSIX runtime required')
     required={'runtime','runtime_binary','base_url','model','api_key_file','allowed_peers','max_requests'}
-    optional={'binary','state','endpoint','roots','ca','role','dial','max_tokens','turn_seconds','runtime_package'}
+    optional={'binary','state','endpoint','roots','ca','role','dial','max_tokens','turn_seconds','runtime_package','runtime_cli'}
     if not required <= config.keys() or config.keys()-required-optional: raise ValueError('missing/unknown configuration')
     if config['runtime'] not in VERSIONS: raise ValueError('unsupported runtime')
     for name in ('runtime_binary','api_key_file'):
@@ -37,6 +37,15 @@ def validate(config):
         version_args=[config['runtime_binary'],'-I','-c','from importlib.metadata import version; print(version('+repr(SDK_PACKAGES[config['runtime']])+'))']
     version=subprocess.check_output(version_args,stderr=subprocess.DEVNULL,timeout=10).decode().strip()
     if version != VERSIONS[config['runtime']]: raise ValueError('unverified runtime version')
+    if config['runtime']=='copilot':
+        cli=Path(config.get('runtime_cli',''))
+        if not cli.is_absolute():raise ValueError('absolute Copilot CLI path required')
+        with tempfile.TemporaryDirectory(prefix='comlink-copilot-version-') as scratch:
+            env={'PATH':os.environ.get('PATH','/usr/bin:/bin'),'COPILOT_HOME':scratch,
+                'COPILOT_CACHE_HOME':scratch+'/cache','COPILOT_AUTO_UPDATE':'false'}
+            cli_version=subprocess.check_output([str(cli),'--version'],env=env,stderr=subprocess.DEVNULL,timeout=30).decode().splitlines()[0].strip()
+        if cli_version!='GitHub Copilot CLI 1.0.83.':raise ValueError('unverified Copilot CLI')
+    elif 'runtime_cli' in config:raise ValueError('runtime_cli is Copilot only')
     u=urlsplit(config['base_url'])
     if not u.hostname or u.username or u.password or u.query or u.fragment or (u.scheme!='https' and not(u.scheme=='http' and u.hostname in {'localhost','127.0.0.1','::1'})):
         raise ValueError('HTTPS or loopback provider required')
@@ -65,7 +74,12 @@ def command(config,scratch,gate):
         env.update(PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OTEL_SDK_DISABLED='true',
             COMLINK_GATE_URL=gate.url,COMLINK_GATE_TOKEN=gate.token,
             CLAUDE_CONFIG_DIR=str(root/'claude'),CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC='1',
-            DISABLE_TELEMETRY='1',DISABLE_ERROR_REPORTING='1',CLAUDE_CODE_DISABLE_AUTO_MEMORY='1')
+            DISABLE_TELEMETRY='1',DISABLE_ERROR_REPORTING='1',CLAUDE_CODE_DISABLE_AUTO_MEMORY='1',
+            LANGCHAIN_TRACING_V2='false',LANGSMITH_TRACING='false',
+            COPILOT_HOME=str(root/'copilot'),COPILOT_CACHE_HOME=str(root/'copilot-cache'),
+            COPILOT_AUTO_UPDATE='false',COPILOT_DISABLE_KEYTAR='1',COPILOT_TELEMETRY_DISABLED='1',
+            COPILOT_OTEL_ENABLED='false',OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT='false')
+        if config['runtime']=='copilot':env['COMLINK_COPILOT_CLI']=config['runtime_cli']
         args=[config['runtime_binary'],'-I',str(Path(__file__).with_name('sdk_worker.py')),config['runtime'],config['model']]
     elif config['runtime']=='codex':
         env.update(RUST_LOG='off',COMLINK_GATE_KEY=gate.token)
@@ -159,7 +173,7 @@ async def serve(config):
             task.cancel();await asyncio.gather(task,return_exceptions=True)
 
 def main():
-    p=argparse.ArgumentParser(description='Codex/OpenCode/ADK/Claude SDK/OpenClaw transient Comlink receiver')
+    p=argparse.ArgumentParser(description='Transient model-runtime Comlink receiver')
     p.add_argument('--config',required=True)
     a=p.parse_args()
     try:asyncio.run(serve(json.loads(Path(a.config).read_text())))

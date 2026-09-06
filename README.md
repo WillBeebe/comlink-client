@@ -69,6 +69,10 @@ using the already verified Claude SDK bridge and bundled CLI.
 with transient receiving and outgoing calls. [Grok Build remains pending](docs/GROK_BUILD.md)
 a verified non-persistent Build session mode.
 
+**GitHub Copilot CLI and LangGraph / LangChain core are supported** through
+[`comlink-sdk`](docs/COPILOT_LANGGRAPH.md), with transient runtime state, bounded
+provider access and bidirectional encrypted-call acceptance.
+
 For Go-based runtimes, start with the [Go guide](docs/GO_AGENT.md) and
 [build-tested transport example](examples/go-agent). The
 [integration roadmap](docs/INTEGRATIONS.md) covers Codex, ADK, Claude Agent SDK, Hermes,

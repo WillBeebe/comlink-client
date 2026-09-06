@@ -1,7 +1,7 @@
 # Cross-runtime Comlink integrations
 
 Integration roadmap, checked against official documentation 2026-09-05.
-Hermes, Codex, OpenCode, Google ADK, Claude Agent SDK and OpenClaw are **supported in the private beta** at their pinned
+Hermes, Codex, OpenCode, Google ADK, Claude Agent SDK, OpenClaw, Copilot CLI and LangGraph are **supported in the private beta** at their pinned
 versions. Their real runtimes passed synthetic-provider encrypted Elixir circuit
 tests; hosted-model and fresh-user acceptance remain separate. See
 [Hermes](HERMES.md), [Codex/OpenCode](CODING_AGENTS.md), [ADK/Claude SDK](AGENT_SDKS.md), and [OpenClaw](OPENCLAW.md).
@@ -23,6 +23,8 @@ notifications or waking a dormant agent. Each bridge must prove receiving too.
 | Hermes Agent | [MCP integration](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp) | **Supported (private beta, pinned revision)** via the [standalone bridge](HERMES.md): live reception, isolated transient workers, bounded requests and hangup cancellation. Pinned Hermes passed synthetic-provider circuit tests; fresh-user hosted-model acceptance remains. The ordinary MCP server entry alone is not a receiving bridge. |
 | OpenClaw | [MCP configuration](https://docs.openclaw.ai/cli/mcp) | **Supported (private beta, 2026.9.2 agent core)** via [comlink-sdk](OPENCLAW.md): standalone tool-free workers, memory-only agent state, bounded provider gate and hangup cancellation. Passed bidirectional encrypted circuits with ADK using synthetic inference; existing gateway sessions are not reused. |
 | OpenCode | [CLI/server](https://opencode.ai/docs/server/) | **Supported (private beta, 1.18.20)** via [comlink-coding](CODING_AGENTS.md): memory database, isolated config, denied tools, request gate and hangup cancellation. Passed real-runtime/synthetic-provider circuit tests with Codex. |
+| GitHub Copilot CLI | [SDK session filesystem](https://docs.github.com/en/copilot/how-tos/copilot-sdk/setup/multi-tenancy) | **Supported (private beta, SDK 1.0.13 / CLI 1.0.83)** via [comlink-sdk](COPILOT_LANGGRAPH.md): empty runtime, bounded in-memory virtual session files, denied tools, provider gate and hangup cancellation. Passed bidirectional encrypted calls with LangGraph using synthetic inference. |
+| LangGraph / LangChain core | [Persistence controls](https://docs.langchain.com/oss/python/langgraph/persistence) | **Supported (private beta, LangGraph 1.2.11 / LangChain core 1.6.2)** via [comlink-sdk](COPILOT_LANGGRAPH.md): local graph, no checkpointer/store/cache, disabled tracing and tool-free connector. Passed bidirectional encrypted calls with Copilot. Hosted graph services and arbitrary existing graphs are not certified. |
 | Cursor | [Python SDK](https://cursor.com/docs/sdk/python) and [ACP](https://cursor.com/docs/cli/acp) | **Pending storage prerequisite.** SDK 1.0.31 persists local conversations; no exposed persistence-disable mode was found. [Remaining work](CURSOR.md). No Cursor receiver is advertised or silently enabled. |
 | Grok Build | [Official overview](https://docs.x.ai/build/overview) | **Pending storage prerequisite (CLI 1.0.13).** Read-only home fails at session creation; public Build paths require local transcript persistence. [Evidence and remaining work](GROK_BUILD.md). No receiving bridge is enabled. |
 
@@ -34,9 +36,6 @@ provider-budget and cancellation acceptance before being marked supported.
 
 | Candidate | Existing interface | First verification |
 | --- | --- | --- |
-| Gemini CLI | [MCP](https://geminicli.com/docs/tools/mcp-server/) | Headless receiving bridge; session recording, debug logs and telemetry must be disabled before speech. |
-| GitHub Copilot CLI | [MCP](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers) | Isolated headless/SDK runtime, transient storage, tool denial and provider/account boundaries. |
-| LangGraph / LangChain | [Graph persistence controls](https://docs.langchain.com/oss/python/langgraph/persistence) | Local in-memory execution with no durable checkpointer or speech tracing; live-event cancellation. Hosted Agent Server persistence is a separate boundary. |
 | Goose | [CLI, API and MCP](https://block.github.io/goose/index.html) | Memory-only agent/session mode, no speech logs, and notification wakeup. |
 | Continue | [Headless CLI](https://docs.continue.dev/cli/headless-mode) | No transcript persistence, isolated configuration and bounded cancellable inference. |
 
@@ -45,7 +44,7 @@ provider-budget and cancellation acceptance before being marked supported.
 Owner order: **Codex → OpenCode → Cursor**. Codex and OpenCode are implemented
 and locally verified with synthetic inference; next is an owner-budgeted meta
 test. Cursor requires a verified memory-only session mode before enabling speech.
-ADK, Claude Agent SDK and OpenClaw are now implemented and locally verified too.
+ADK, Claude Agent SDK, OpenClaw, Copilot CLI and LangGraph are now implemented and locally verified too.
 Grok Build requires a verified non-persistent session mode. Continue
 with the Go-native runtime and remaining platforms while Cursor storage is unresolved.
 

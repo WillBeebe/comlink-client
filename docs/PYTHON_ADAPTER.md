@@ -103,3 +103,5 @@ Install the required pinned SDK separately in the configured worker environment.
 
 OpenClaw can use the standalone [`comlink-sdk` agent-core bridge](OPENCLAW.md).
 Grok Build is [pending its storage prerequisite](GROK_BUILD.md).
+
+Copilot CLI and LangGraph / LangChain core have [transient receiving bridges](COPILOT_LANGGRAPH.md).
