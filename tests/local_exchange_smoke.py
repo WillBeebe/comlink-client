@@ -6,7 +6,8 @@ p=argparse.ArgumentParser(description='Maintainer-only isolated local exchange a
 p.add_argument('--server',required=True)
 p.add_argument('--binary',required=True)
 p.add_argument('--switch',required=True)
-args=p.parse_args();full=args.server;binary=args.binary;switch=args.switch
+p.add_argument('--hermes-config', help='maintainer synthetic-provider config; optional')
+args=p.parse_args();hermes_config=args.hermes_config;full=args.server;binary=args.binary;switch=args.switch
 async def exercise(d,endpoint):
     states=[d/'a',d/'b'];numbers=[]
     for state in states:
@@ -15,8 +16,17 @@ async def exercise(d,endpoint):
         policy=d/f'policy{i}.json';policy.write_text(json.dumps({'incoming':True,'allow_unknown':False,'allowed':[numbers[1-i]],'blocked':[]}))
         subprocess.run([binary,'policy','--file',str(state/'handset.json'),'--roots',str(d/'roots.json'),'--endpoint',endpoint,'--policy',str(policy)],check=True,stdout=subprocess.DEVNULL)
     completed=[asyncio.Event(),asyncio.Event()]
+    bridges=[]
+    if hermes_config:
+        from comlink_adapter.hermes import HermesBridge
+        cfg=json.loads(Path(hermes_config).read_text())
+        bridges=[HermesBridge(dict(cfg, allowed_peers=[numbers[1-i]])) for i in range(2)]
     def handler(i):
         async def respond(event,context):
+            if bridges:
+                actions=await bridges[i].handle(event,context)
+                if event.type=='say' and event.text=='pong':completed[i].set()
+                return actions
             if event.type=='ring':return [Action('answer')]
             if event.type=='answer':return [Action('say','ping')]
             if event.type=='say':
@@ -30,12 +40,12 @@ async def exercise(d,endpoint):
         agents=[Agent(a,handler(0),allowed_peers=[numbers[1]]),Agent(b,handler(1),allowed_peers=[numbers[0]])]
         tasks=[asyncio.create_task(agent.run()) for agent in agents]
         try:
-            await agents[0].dial(numbers[1]);await asyncio.wait_for(completed[0].wait(),20)
+            await agents[0].dial(numbers[1]);await asyncio.wait_for(completed[0].wait(),90 if bridges else 20)
             for _ in range(100):
                 if not any(agent.calls for agent in agents):break
                 await asyncio.sleep(.02)
             assert not any(agent.calls for agent in agents)
-            await agents[1].dial(numbers[0]);await asyncio.wait_for(completed[1].wait(),20)
+            await agents[1].dial(numbers[0]);await asyncio.wait_for(completed[1].wait(),90 if bridges else 20)
             for _ in range(100):
                 if not any(agent.calls for agent in agents):break
                 await asyncio.sleep(.02)
@@ -44,7 +54,7 @@ async def exercise(d,endpoint):
             for task in tasks:task.cancel()
             await asyncio.gather(*tasks,return_exceptions=True)
     for state in states:subprocess.run([binary,'revoke','--file',str(state/'handset.json'),'--roots',str(d/'roots.json'),'--endpoint',endpoint],check=True,stdout=subprocess.DEVNULL)
-    print('PASS: packaged async adapter woke both receivers, exchanged encrypted dependent replies, initiated both directions, cleared call state, and revoked both identities; zero model requests.')
+    print(('Hermes local-provider circuit. ' if bridges else '') + 'PASS: packaged async adapter woke both receivers, exchanged encrypted dependent replies, initiated both directions, cleared call state, and revoked both identities; no paid inference.')
 with tempfile.TemporaryDirectory(prefix='comlink-adapter-smoke-') as tmp:
     d=Path(tmp);s=socket.socket();s.bind(('127.0.0.1',0));port=s.getsockname()[1];s.close();endpoint=f'http://127.0.0.1:{port}/mcp'
     subprocess.run([full,'mother','--file',str(d/'issuer.json')],check=True,stdout=subprocess.DEVNULL)

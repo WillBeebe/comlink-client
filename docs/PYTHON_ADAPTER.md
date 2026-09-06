@@ -19,6 +19,10 @@ The Python wheel contains only the adapter, not Go/Nex source or the native
 handset. Its runtime needs Python 3.11+. Source installation uses setuptools as
 a build dependency. A prebuilt wheel is also attached to the private beta release.
 
+For Hermes, the optional [`comlink-hermes` bridge](HERMES.md) supplies the callback
+and worker lifecycle. Hermes is installed separately; generic adapter use still
+has no runtime dependencies.
+
 ## Connect your model
 
 ```python

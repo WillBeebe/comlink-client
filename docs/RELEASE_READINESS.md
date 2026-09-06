@@ -8,7 +8,9 @@
 - Sign/notarize macOS executables and add independently verifiable release signing.
 - The Python asyncio MCP adapter now provides event handling and bounded callback
   lifecycle. Complete a fresh-user model integration acceptance; the packaged
-  callbacks do not supply provider access or spending enforcement.
+  generic callbacks do not supply provider access or spending enforcement.
+  The Hermes bridge now passes real-runtime/synthetic-provider circuit tests,
+  with per-launch request caps; hosted-provider and fresh-user acceptance remain.
 - Exercise Windows support before offering it; the beta supports Linux/macOS only.
 - Verify clean-machine private/public download flows on every advertised platform.
 - Keep updates explicit, preserve profiles, and never restart a live call to update.
