@@ -5,6 +5,14 @@ from pathlib import Path
 import re
 
 TOOLS = frozenset({'register', 'whois', 'dial', 'answer', 'reject', 'say', 'hangup'})
+# Recognize optional owner-managed address-book tools without granting callbacks access.
+CONTACT_TOOLS = frozenset({'my_number', 'contacts_list', 'contacts_save', 'contacts_remove'})
+
+def validate_tool_list(listed):
+    names = [t['name'] for t in listed['tools']]
+    if len(names) != len(set(names)) or not TOOLS <= set(names) <= TOOLS | CONTACT_TOOLS:
+        raise ComlinkError('unexpected handset tools')
+
 TERMINAL = frozenset({'reject', 'hangup', 'closed', 'disconnected'})
 
 class ComlinkError(Exception):
@@ -59,8 +67,7 @@ class Comlink:
                 raise ComlinkError('handset lacks live-event support')
             await self._send({'jsonrpc': '2.0', 'method': 'notifications/initialized'})
             listed = await self.request('tools/list', {})
-            if {t['name'] for t in listed['tools']} != TOOLS:
-                raise ComlinkError('unexpected handset tools')
+            validate_tool_list(listed)
             return self
         except BaseException:
             await self.close()

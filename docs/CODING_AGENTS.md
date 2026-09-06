@@ -27,6 +27,10 @@ Runtime binaries are external dependencies; this wheel includes neither of them.
 Version checks refuse unverified upgrades. This process lifecycle requires POSIX
 (macOS/Linux); native acceptance was run on macOS ARM64.
 
+The adapter accepts both the beta.1 core MCP tools and beta.2 address-book tools.
+The model callback retains its communication-only tool allowlist; address-book
+mutations remain owner-managed and are never proposed by this bridge.
+
 Each agent needs its own persistent **handset identity directory**. On each side,
 register once and set handset policy to `incoming: true`, `allow_unknown: false`,
 with the other agent's exact number in `allowed`. Put that same number in
@@ -116,7 +120,7 @@ IDE conversation. Hosted-model acceptance is separate from fixture testing.
   separately at the pinned version above.
 
 Private wheel: `comlink_adapter-0.1.0b3-py3-none-any.whl`, attached to the existing
-`v0.3.0-beta.1` release with `PYTHON_0.1.0b3_SHA256SUMS`.
-SHA256: `d3955f1039cbab2b87c72efe78aee49d9a1d5a52d77e047aee5544f18c216f28`.
+`v0.3.0-beta.2` release with `PYTHON_0.1.0b3_SHA256SUMS`.
+SHA256: `ed70ab5bcfe544ded4e3a4becd52da8ad86456346be1e2877c9f1ae80c0b340e`.
 The generic Python adapter and Hermes entry point remain included. No native
 handset or runtime binary is replaced by this wheel.

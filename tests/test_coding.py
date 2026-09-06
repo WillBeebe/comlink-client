@@ -12,6 +12,14 @@ from comlink_adapter.inference_gate import InferenceGate
 from coding_smoke import Provider
 
 class CodingTests(unittest.TestCase):
+    def test_new_handset_tools_do_not_expand_callback_permissions(self):
+        from comlink_adapter.client import validate_tool_list, TOOLS, CONTACT_TOOLS, ComlinkError
+        for names in (TOOLS, TOOLS | CONTACT_TOOLS):
+            validate_tool_list({'tools':[{'name':n} for n in names]})
+        self.assertNotIn('contacts_save',TOOLS)
+        with self.assertRaises(ComlinkError):
+            validate_tool_list({'tools':[{'name':n} for n in TOOLS | {'shell'}]})
+
     def test_cursor_refused_before_launch(self):
         with self.assertRaises(ValueError):
             validate(dict(runtime='cursor',runtime_binary='/unused',base_url='https://example.com/v1',model='m',api_key_file='/unused',allowed_peers=[],max_requests=1))
