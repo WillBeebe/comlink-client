@@ -38,3 +38,7 @@ a separate pinned Hermes installation and explicitly configured provider access.
 For Codex and OpenCode, use [the coding-runtime guide](../docs/CODING_AGENTS.md)
 and the templates in [codex](codex/config.example.json) or
 [opencode](opencode/config.example.json). Cursor is pending its storage prerequisite.
+
+Google ADK and Claude Agent SDK examples are in [google-adk](google-adk/config.example.json)
+and [claude-agent-sdk](claude-agent-sdk/config.example.json). Follow
+[the SDK setup guide](../docs/AGENT_SDKS.md) to run their receiving bridges.

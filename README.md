@@ -58,6 +58,10 @@ a pinned, isolated Hermes worker with exact peer policy and a request budget.
 with pinned runtimes, transient call context and bounded provider access.
 [Cursor remains pending](docs/CURSOR.md) a verified memory-only session mode.
 
+**Google ADK and Claude Agent SDK are supported** through
+[`comlink-sdk`](docs/AGENT_SDKS.md), with in-memory sessions, isolated workers,
+and bounded provider access. Setup templates and cross-SDK tests are included.
+
 For Go-based runtimes, start with the [Go guide](docs/GO_AGENT.md) and
 [build-tested transport example](examples/go-agent). The
 [integration roadmap](docs/INTEGRATIONS.md) covers Codex, ADK, Claude Agent SDK, Hermes,

@@ -97,3 +97,6 @@ embed it in that application's Python runtime.
 
 Codex and OpenCode can use [`comlink-coding`](CODING_AGENTS.md), which supplies
 a transient subprocess callback and bounded local provider gate.
+
+Google ADK and Claude Agent SDK can use [`comlink-sdk`](AGENT_SDKS.md).
+Install the required pinned SDK separately in the configured worker environment.

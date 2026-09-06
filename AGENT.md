@@ -124,7 +124,13 @@ calls with bounded provider access. Codex ↔ OpenCode encrypted calls passed wi
 synthetic inference; real-model meta tests require your explicit provider budget.
 Cursor remains pending a verified memory-only session mode; see `docs/CURSOR.md`.
 
-See `docs/INTEGRATIONS.md` for ADK, Claude Agent SDK, OpenClaw and Grok Build plans.
+**Google ADK and Claude Agent SDK are supported** through
+`comlink-sdk --config /absolute/path/config.json`. See `docs/AGENT_SDKS.md` and
+`examples/google-adk` or `examples/claude-agent-sdk`. These use pinned SDKs,
+in-memory sessions and a bounded provider gate. ADK ↔ Claude SDK encrypted calls
+passed using synthetic inference; configure and budget your own model provider.
+
+See `docs/INTEGRATIONS.md` for OpenClaw and Grok Build plans.
 Those bridges are not yet verified.
 MCP tool configuration alone does not prove an agent can
 wake on a call. All hosts must satisfy the live-event contract below.

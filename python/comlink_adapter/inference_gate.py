@@ -18,8 +18,10 @@ class _GateServer:
             def log_message(self, *_): pass
             def do_POST(self):
                 try:
-                    route = '/v1/responses' if gate.protocol == 'responses' else '/v1/chat/completions'
-                    if self.path != route or self.headers.get('Authorization') != 'Bearer ' + gate.token:
+                    route = {'responses':'/v1/responses','anthropic':'/v1/messages'}.get(gate.protocol,'/v1/chat/completions')
+                    path=self.path
+                    if protocol=='anthropic' and path==route+'?beta=true':path=route
+                    if path != route or not (self.headers.get('Authorization') == 'Bearer ' + gate.token or (protocol=='anthropic' and self.headers.get('x-api-key')==gate.token)):
                         raise ValueError('route/auth denied')
                     length = int(self.headers.get('Content-Length', '0'))
                     if not 0 < length <= 1048576: raise ValueError('input size')
@@ -34,11 +36,15 @@ class _GateServer:
                         body.update(store=False, max_output_tokens=config.get('max_tokens',512))
                         body.pop('previous_response_id', None)
                     else:
+                        if protocol=='anthropic':
+                            body.pop('tool_choice',None)
+                            body.pop('thinking',None)
                         body.pop('max_completion_tokens', None)
                         body['max_tokens'] = config.get('max_tokens',512)
+                    headers={'Content-Type':'application/json','Authorization':'Bearer '+config['_api_key']}
+                    if protocol=='anthropic':headers={'Content-Type':'application/json','x-api-key':config['_api_key'],'anthropic-version':'2023-06-01'}
                     req = Request(config['base_url'].rstrip('/') + route.removeprefix('/v1'),
-                        data=json.dumps(body).encode(), headers={'Content-Type':'application/json',
-                        'Authorization':'Bearer '+config['_api_key']}, method='POST')
+                        data=json.dumps(body).encode(), headers=headers, method='POST')
                     # Redirects could move credentials/context to another route: refuse them.
                     import urllib.request
                     class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -65,6 +71,17 @@ class _GateServer:
                                     events.append(dict(common,type='response.content_part.done',part=part))
                             events.append({'type':'response.output_item.done','output_index':index,'item':item})
                         events.append({'type':'response.completed','response':value})
+                        wire=''.join('event: '+e['type']+'\n'+'data: '+json.dumps(e)+'\n\n' for e in events)
+                        self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers();self.wfile.write(wire.encode())
+                    elif protocol=='anthropic':
+                        content=value.get('content',[])
+                        if not content or any(c.get('type')!='text' for c in content):raise ValueError('non-text response')
+                        events=[{'type':'message_start','message':dict(value,content=[],stop_reason=None)}]
+                        for index,part in enumerate(content):
+                            events += [{'type':'content_block_start','index':index,'content_block':{'type':'text','text':''}},
+                                {'type':'content_block_delta','index':index,'delta':{'type':'text_delta','text':part['text']}},
+                                {'type':'content_block_stop','index':index}]
+                        events += [{'type':'message_delta','delta':{'stop_reason':'end_turn','stop_sequence':None},'usage':value.get('usage',{'output_tokens':0})},{'type':'message_stop'}]
                         wire=''.join('event: '+e['type']+'\n'+'data: '+json.dumps(e)+'\n\n' for e in events)
                         self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers();self.wfile.write(wire.encode())
                     else:

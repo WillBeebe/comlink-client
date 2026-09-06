@@ -22,9 +22,10 @@ class Provider(BaseHTTPRequestHandler):
     def do_POST(self):
         cls=type(self);cls.requests+=1
         b=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-        assert b['model']=='fixture-model' and b['stream'] is False and b['tools']==[] and b['tool_choice']=='none'
+        assert b['model']=='fixture-model' and b['stream'] is False and b['tools']==[]
+        if self.path!='/v1/messages':assert b['tool_choice']=='none'
         responses=self.path=='/v1/responses'
-        assert responses or self.path=='/v1/chat/completions'
+        assert responses or self.path in {'/v1/chat/completions','/v1/messages'}
         assert b['max_output_tokens' if responses else 'max_tokens']==512
         if responses:assert b['store'] is False
         cls.entered.set()
@@ -50,6 +51,10 @@ class Provider(BaseHTTPRequestHandler):
                 output=[{'id':'msg_fixture','type':'message','role':'assistant','status':'completed','content':[{'type':'output_text','text':answer,'annotations':[]}]}]
                 if cls.mode=='tool':output=[{'type':'function_call','name':'shell','arguments':'{}','call_id':'forbidden'}]
                 value={'id':'resp_fixture','object':'response','created_at':1,'status':'completed','model':'fixture-model','output':output,'usage':{'input_tokens':10,'output_tokens':10,'total_tokens':20}}
+            elif self.path=='/v1/messages':
+                content=[{'type':'text','text':answer}]
+                if cls.mode=='tool':content=[{'type':'tool_use','id':'forbidden','name':'shell','input':{}}]
+                value={'id':'msg_fixture','type':'message','role':'assistant','model':'fixture-model','content':content,'stop_reason':'end_turn','stop_sequence':None,'usage':{'input_tokens':10,'output_tokens':10}}
             else:
                 message={'role':'assistant','content':answer}
                 if cls.mode=='tool':message['tool_calls']=[{'id':'forbidden','type':'function','function':{'name':'shell','arguments':'{}'}}]
@@ -70,7 +75,9 @@ async def exercise(cfg):
         def __exit__(self,*args):
             homes.append(Path(self.name))
             for f in Path(self.name).rglob('*'):
-                if f.is_file() and not f.is_symlink():assert MARKER.encode() not in f.read_bytes(), 'speech persisted'
+                if f.is_file() and not f.is_symlink():
+                    data=f.read_bytes()
+                    assert MARKER.encode() not in data and b'synthetic reply' not in data, 'speech persisted'
             return super().__exit__(*args)
     class Gate(InferenceGate):
         def __enter__(self):
@@ -108,20 +115,23 @@ async def exercise(cfg):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--codex',required=True);p.add_argument('--opencode',required=True)
+    p.add_argument('--codex');p.add_argument('--opencode');p.add_argument('--adk-python');p.add_argument('--claude-python')
     for n in ('server','binary','switch'):p.add_argument('--'+n)
     a=p.parse_args()
+    selected=[(r,b) for r,b in [('codex',a.codex),('opencode',a.opencode),('adk',a.adk_python),('claude-sdk',a.claude_python)] if b]
+    if not selected:p.error('select at least one runtime')
     if any((a.server,a.binary,a.switch)) and not all((a.server,a.binary,a.switch)):p.error('all exchange paths required')
     server=ThreadingHTTPServer(('127.0.0.1',0),Provider);threading.Thread(target=server.serve_forever,daemon=True).start()
     try:
         with tempfile.TemporaryDirectory(prefix='comlink-coding-test-') as d:
             key=Path(d)/'key';key.write_text('synthetic-key');key.chmod(0o600)
-            configs=[dict(runtime=n,runtime_binary=getattr(a,n),base_url=f'http://127.0.0.1:{server.server_port}/v1',model='fixture-model',api_key_file=str(key),allowed_peers=['a'*128],max_requests=8,turn_seconds=60) for n in ('codex','opencode')]
+            configs=[dict(runtime=n,runtime_binary=binary,base_url=f'http://127.0.0.1:{server.server_port}/v1',model='fixture-model',api_key_file=str(key),allowed_peers=['a'*128],max_requests=8,turn_seconds=60) for n,binary in selected]
             for cfg in configs:asyncio.run(exercise(cfg))
             if a.server:
+                assert len(configs)==2, 'select exactly two runtimes for circuit acceptance'
                 f=Path(d)/'config.json';f.write_text(json.dumps(configs));before=Provider.requests
                 subprocess.run([sys.executable,str(Path(__file__).with_name('local_exchange_smoke.py')),'--server',a.server,'--binary',a.binary,'--switch',a.switch,'--coding-config',str(f)],check=True,timeout=180)
                 assert Provider.requests==before+6
-                print('PASS: Codex and OpenCode called each other both ways through Elixir; six synthetic inference turns.',flush=True)
+                print('PASS:',configs[0]['runtime'],'and',configs[1]['runtime'],'called each other both ways through Elixir; six synthetic inference turns.',flush=True)
     finally:Provider.release.set();server.shutdown();server.server_close()
 if __name__=='__main__':main()

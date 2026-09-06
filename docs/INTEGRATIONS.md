@@ -1,10 +1,10 @@
 # Cross-runtime Comlink integrations
 
 Integration roadmap, checked against official documentation 2026-09-05.
-Hermes, Codex and OpenCode are **supported in the private beta** at their pinned
+Hermes, Codex, OpenCode, Google ADK and Claude Agent SDK are **supported in the private beta** at their pinned
 versions. Their real runtimes passed synthetic-provider encrypted Elixir circuit
 tests; hosted-model and fresh-user acceptance remain separate. See
-[Hermes](HERMES.md) and [Codex/OpenCode](CODING_AGENTS.md).
+[Hermes](HERMES.md), [Codex/OpenCode](CODING_AGENTS.md), and [ADK/Claude SDK](AGENT_SDKS.md).
 The Python adapter has installed-package local acceptance; the Go starter is
 build/unit-tested. Other entries remain proposals, not verified compatibility.
 No paid provider or hosted-agent subscription was configured.
@@ -17,8 +17,8 @@ notifications or waking a dormant agent. Each bridge must prove receiving too.
 | Platform | Documented integration surface | Proposed Comlink example and remaining verification |
 | --- | --- | --- |
 | Codex | [Non-interactive CLI](https://learn.chatgpt.com/docs/non-interactive-mode) | **Supported (private beta, CLI 0.153.0)** via [comlink-coding](CODING_AGENTS.md): ephemeral execution, exact peer policy, request gate and hangup cancellation. Codex and OpenCode passed bidirectional encrypted circuit tests with synthetic inference. |
-| Google ADK | [MCP toolsets](https://github.com/google/adk-docs/blob/main/docs/tools-custom/mcp-tools.md) | Embed the Python adapter and use a cancellable callback to run a bounded ADK turn. Prove turn interruption and use transient session/state services; do not silently save call text in a durable ADK session. |
-| Claude Agent SDK | [MCP integration](https://code.claude.com/docs/en/agent-sdk/mcp) | A Python host owns the adapter and invokes a restricted SDK turn for each event. Validate cancellation and transcript/session persistence before claiming transient calls. Use explicit Comlink-only action results rather than granting the full coding toolset. |
+| Google ADK | [Session services](https://adk.dev/sessions/session/) | **Supported (private beta, 2.8.0)** via [comlink-sdk](AGENT_SDKS.md): real ADK agent/runner, in-memory session, tool-free chat-completions connector, bounded requests and hangup cancellation. Passed encrypted circuits with Claude SDK using synthetic inference. |
+| Claude Agent SDK | [Python reference](https://code.claude.com/docs/en/agent-sdk/python) | **Supported (private beta, SDK 0.2.152 / bundled CLI 2.1.259)** via [comlink-sdk](AGENT_SDKS.md): in-memory session store, no session persistence, isolated settings, denied tools and hangup cancellation. Passed encrypted circuits with ADK using synthetic inference. |
 | Hermes Agent | [MCP integration](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp) | **Supported (private beta, pinned revision)** via the [standalone bridge](HERMES.md): live reception, isolated transient workers, bounded requests and hangup cancellation. Pinned Hermes passed synthetic-provider circuit tests; fresh-user hosted-model acceptance remains. The ordinary MCP server entry alone is not a receiving bridge. |
 | OpenClaw | [MCP configuration](https://docs.openclaw.ai/cli/mcp) | Add a runtime/gateway event bridge with transient call state and exact peer policy. Prove lifecycle behavior without converting events into durable chat/task messages. |
 | OpenCode | [CLI/server](https://opencode.ai/docs/server/) | **Supported (private beta, 1.18.20)** via [comlink-coding](CODING_AGENTS.md): memory database, isolated config, denied tools, request gate and hangup cancellation. Passed real-runtime/synthetic-provider circuit tests with Codex. |
@@ -30,7 +30,8 @@ notifications or waking a dormant agent. Each bridge must prove receiving too.
 Owner order: **Codex → OpenCode → Cursor**. Codex and OpenCode are implemented
 and locally verified with synthetic inference; next is an owner-budgeted meta
 test. Cursor requires a verified memory-only session mode before enabling speech.
-Then continue ADK, Claude Agent SDK, Go-native and the remaining platforms.
+ADK and Claude Agent SDK are now implemented and locally verified too. Continue
+with the Go-native runtime and remaining platforms while Cursor storage is unresolved.
 
 Use one shared cross-runtime acceptance scenario: agent A asks agent B to review
 synthetic task facts; B returns a dependent finding; A acknowledges it and hangs
