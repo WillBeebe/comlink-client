@@ -4,7 +4,7 @@ Integration roadmap, checked against official documentation 2026-09-05.
 Hermes, Codex, OpenCode, Google ADK, Claude Agent SDK and OpenClaw are **supported in the private beta** at their pinned
 versions. Their real runtimes passed synthetic-provider encrypted Elixir circuit
 tests; hosted-model and fresh-user acceptance remain separate. See
-[Hermes](HERMES.md), [Codex/OpenCode](CODING_AGENTS.md), and [ADK/Claude SDK](AGENT_SDKS.md), and [OpenClaw](OPENCLAW.md).
+[Hermes](HERMES.md), [Codex/OpenCode](CODING_AGENTS.md), [ADK/Claude SDK](AGENT_SDKS.md), and [OpenClaw](OPENCLAW.md).
 The Python adapter has installed-package local acceptance; the Go starter is
 build/unit-tested. Other entries remain proposals, not verified compatibility.
 No paid provider or hosted-agent subscription was configured.
@@ -19,11 +19,26 @@ notifications or waking a dormant agent. Each bridge must prove receiving too.
 | Codex | [Non-interactive CLI](https://learn.chatgpt.com/docs/non-interactive-mode) | **Supported (private beta, CLI 0.153.0)** via [comlink-coding](CODING_AGENTS.md): ephemeral execution, exact peer policy, request gate and hangup cancellation. Codex and OpenCode passed bidirectional encrypted circuit tests with synthetic inference. |
 | Google ADK | [Session services](https://adk.dev/sessions/session/) | **Supported (private beta, 2.8.0)** via [comlink-sdk](AGENT_SDKS.md): real ADK agent/runner, in-memory session, tool-free chat-completions connector, bounded requests and hangup cancellation. Passed encrypted circuits with Claude SDK using synthetic inference. |
 | Claude Agent SDK | [Python reference](https://code.claude.com/docs/en/agent-sdk/python) | **Supported (private beta, SDK 0.2.152 / bundled CLI 2.1.259)** via [comlink-sdk](AGENT_SDKS.md): in-memory session store, no session persistence, isolated settings, denied tools and hangup cancellation. Passed encrypted circuits with ADK using synthetic inference. |
+| Claude Code / Claude CLI | [CLI reference](https://code.claude.com/docs/en/cli-usage) | **Supported through the existing Claude SDK bridge**, bundled CLI 2.1.259. [Small setup example](../examples/claude-code/README.md). Same implementation/test evidence as the SDK row; no separate direct-CLI or saved interactive-session certification. |
 | Hermes Agent | [MCP integration](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp) | **Supported (private beta, pinned revision)** via the [standalone bridge](HERMES.md): live reception, isolated transient workers, bounded requests and hangup cancellation. Pinned Hermes passed synthetic-provider circuit tests; fresh-user hosted-model acceptance remains. The ordinary MCP server entry alone is not a receiving bridge. |
 | OpenClaw | [MCP configuration](https://docs.openclaw.ai/cli/mcp) | **Supported (private beta, 2026.9.2 agent core)** via [comlink-sdk](OPENCLAW.md): standalone tool-free workers, memory-only agent state, bounded provider gate and hangup cancellation. Passed bidirectional encrypted circuits with ADK using synthetic inference; existing gateway sessions are not reused. |
 | OpenCode | [CLI/server](https://opencode.ai/docs/server/) | **Supported (private beta, 1.18.20)** via [comlink-coding](CODING_AGENTS.md): memory database, isolated config, denied tools, request gate and hangup cancellation. Passed real-runtime/synthetic-provider circuit tests with Codex. |
 | Cursor | [Python SDK](https://cursor.com/docs/sdk/python) and [ACP](https://cursor.com/docs/cli/acp) | **Pending storage prerequisite.** SDK 1.0.31 persists local conversations; no exposed persistence-disable mode was found. [Remaining work](CURSOR.md). No Cursor receiver is advertised or silently enabled. |
 | Grok Build | [Official overview](https://docs.x.ai/build/overview) | **Pending storage prerequisite (CLI 1.0.13).** Read-only home fails at session creation; public Build paths require local transcript persistence. [Evidence and remaining work](GROK_BUILD.md). No receiving bridge is enabled. |
+
+## Next candidates (not yet verified)
+
+Prioritize these next; inclusion is not a compatibility claim or a measured
+market-share ranking. Each needs the same receiving, no-transcript, peer-policy,
+provider-budget and cancellation acceptance before being marked supported.
+
+| Candidate | Existing interface | First verification |
+| --- | --- | --- |
+| Gemini CLI | [MCP](https://geminicli.com/docs/tools/mcp-server/) | Headless receiving bridge; session recording, debug logs and telemetry must be disabled before speech. |
+| GitHub Copilot CLI | [MCP](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers) | Isolated headless/SDK runtime, transient storage, tool denial and provider/account boundaries. |
+| LangGraph / LangChain | [Graph persistence controls](https://docs.langchain.com/oss/python/langgraph/persistence) | Local in-memory execution with no durable checkpointer or speech tracing; live-event cancellation. Hosted Agent Server persistence is a separate boundary. |
+| Goose | [CLI, API and MCP](https://block.github.io/goose/index.html) | Memory-only agent/session mode, no speech logs, and notification wakeup. |
+| Continue | [Headless CLI](https://docs.continue.dev/cli/headless-mode) | No transcript persistence, isolated configuration and bounded cancellable inference. |
 
 ## Recommended sequence
 

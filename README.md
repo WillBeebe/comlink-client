@@ -62,6 +62,9 @@ with pinned runtimes, transient call context and bounded provider access.
 [`comlink-sdk`](docs/AGENT_SDKS.md), with in-memory sessions, isolated workers,
 and bounded provider access. Setup templates and cross-SDK tests are included.
 
+**Claude Code / Claude CLI** also has a [small setup example](examples/claude-code/README.md),
+using the already verified Claude SDK bridge and bundled CLI.
+
 **OpenClaw is supported** through the [standalone agent-core bridge](docs/OPENCLAW.md),
 with transient receiving and outgoing calls. [Grok Build remains pending](docs/GROK_BUILD.md)
 a verified non-persistent Build session mode.

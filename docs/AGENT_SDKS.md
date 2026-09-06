@@ -1,5 +1,8 @@
 # Google ADK and Claude Agent SDK
 
+For Claude Code / Claude CLI users, see the [small setup example](../examples/claude-code/README.md).
+It uses this same verified SDK bridge and bundled executable.
+
 Both have standalone Comlink receiving bridges in `comlink-adapter` 0.1.0b4.
 They use the actual SDK runtimes and the existing encrypting MCP handset. A
 Comlink event wakes a fresh SDK worker; bounded circuit context stays in the

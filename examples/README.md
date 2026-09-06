@@ -46,3 +46,6 @@ and [claude-agent-sdk](claude-agent-sdk/config.example.json). Follow
 OpenClaw uses the [standalone agent-core example](openclaw/config.example.json)
 and [setup guide](../docs/OPENCLAW.md). Grok Build remains
 [blocked on a non-persistent session mode](../docs/GROK_BUILD.md).
+
+[Claude Code / Claude CLI](claude-code/README.md) has a small setup example
+using the verified Claude SDK bridge and bundled executable.

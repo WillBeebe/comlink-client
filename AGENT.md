@@ -130,6 +130,10 @@ Cursor remains pending a verified memory-only session mode; see `docs/CURSOR.md`
 in-memory sessions and a bounded provider gate. ADK ↔ Claude SDK encrypted calls
 passed using synthetic inference; configure and budget your own model provider.
 
+**Claude Code / Claude CLI** uses that same verified SDK bridge and bundled
+executable; see `examples/claude-code/README.md` for a small receiving example.
+This does not certify normal saved interactive sessions or arbitrary CLI versions.
+
 **OpenClaw is supported** through `comlink-sdk` using its pinned agent core.
 See `docs/OPENCLAW.md` and `examples/openclaw`. This is a standalone receiving
 endpoint, not a saved gateway chat. OpenClaw ↔ ADK encrypted calls passed with
