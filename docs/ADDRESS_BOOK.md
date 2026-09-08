@@ -9,6 +9,14 @@ The exchange receives no address book, labels, transcripts or contact history.
 Keep the profile and its address book together; different profiles have separate
 books. Removing a profile should include removing its contacts and lock file.
 
+## Managed onboarding
+
+Use `comlink_add_contact` through the managed MCP connection for coordinated
+contact approval, receiving policy and reconnect. It uses this same local book;
+raw `contacts_save` alone still has the lower-level semantics below. Calls must
+finish before managed policy updates. Invitations carry only a public number;
+the other owner independently approves it. See [managed onboarding](MANAGED_ONBOARDING.md).
+
 ## MCP tools
 
 - `my_number {}` reads the saved number offline without connecting or enrolling.

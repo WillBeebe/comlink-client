@@ -95,7 +95,9 @@ class Handset:
         require(initialized.get("capabilities", {}).get("experimental", {}).get("comlink.fyi/events", {}).get("version") == 1)
         self.send({"jsonrpc": "2.0", "method": "notifications/initialized"})
         names = {tool["name"] for tool in self.request("tools/list", {})["tools"]}
-        if names != {"register", "whois", "dial", "answer", "reject", "say", "hangup"}:
+        core = {"register", "whois", "dial", "answer", "reject", "say", "hangup"}
+        optional = {"my_number", "contacts_list", "contacts_save", "contacts_remove"}
+        if not core <= names:
             raise RuntimeError("unexpected tools")
         return self.call("register", {})["number"]
 

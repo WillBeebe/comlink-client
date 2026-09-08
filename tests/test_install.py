@@ -19,4 +19,22 @@ class VerifyTests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as d:
    root=Path(d);s=root/'SHA256SUMS';s.write_text('0'*64+'  ../escape\n')
    with self.assertRaises(ValueError):m.verify(root,m.digest(s),'comlink-linux-amd64')
+ def test_upgrade_preserves_open_inode_and_rollback(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);target=root/'comlink';artifact=root/'new'
+   target.write_bytes(b'old executable');target.chmod(0o755)
+   artifact.write_bytes(b'new executable')
+   with target.open('rb') as running:
+    self.assertEqual(m.reuse_existing(target,artifact,upgrade=True),'upgraded')
+    self.assertEqual(running.read(),b'old executable')
+   self.assertEqual(target.read_bytes(),b'new executable')
+   self.assertEqual(next(root.glob('comlink.previous-*')).read_bytes(),b'old executable')
+ def test_reuse_is_idempotent_and_unapproved_upgrade_refused(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);target=root/'comlink';artifact=root/'new'
+   target.write_bytes(b'same');target.chmod(0o755);artifact.write_bytes(b'same')
+   self.assertEqual(m.reuse_existing(target,artifact),'reused')
+   artifact.write_bytes(b'different')
+   with self.assertRaises(ValueError):m.reuse_existing(target,artifact)
+   self.assertEqual(target.read_bytes(),b'same')
 if __name__=='__main__': unittest.main()

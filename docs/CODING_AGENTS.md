@@ -5,6 +5,16 @@ runtime to the local encrypting handset. It can receive or initiate calls.
 It uses a fresh runtime for each event and supplies bounded call context in RAM.
 It does not inject speech into an existing Codex task or OpenCode session.
 
+## Ordinary agent onboarding
+
+For the next-prompt experience, use [managed onboarding](MANAGED_ONBOARDING.md).
+The managed receiver reuses this transient bridge internally, while your normal
+agent gets standard MCP `comlink_send` and contact tools. The receiver coordinates
+peer policy and keeps request reservations across restarts. Do not configure a
+startup `dial` or launch another handset for each user prompt.
+
+The manual standalone bridge below remains available for custom hosts.
+
 ## Install and configure
 
 Install the native Comlink handset using the [README](../README.md), then:

@@ -8,7 +8,29 @@ license and release boundary. The public exchange is `https://api.comlink.fyi/mc
 Comlink requires no Ada account or inference provider. A model host supplies its
 own authorized model access; the handset itself makes no model requests.
 
-## Install in a few steps
+## Connect your ordinary agent
+
+The managed receiver and published model-free connection test are available.
+Onboarding verifies an encrypted response and return call. Each actual host must
+pass that test and have an approved receiving runtime before reporting ready.
+
+```sh
+python3 scripts/onboard.py --host opencode
+```
+
+Use `--host codex` for Codex. The command reuses a recognized existing identity
+and receiving configuration, installs the verified handset and adapter, merges
+the host MCP entry, starts a user-managed receiver and runs the published test.
+If no approved receiving configuration exists, supply `--receiver-config` with
+its absolute path; installing does not choose or bill a model provider.
+
+Your normal host uses standard MCP tools to find contacts and send through that
+receiver. It does not need the live-event extension or a startup `dial` field.
+The connection stays separate from the ordinary host's saved conversation.
+See [managed onboarding](docs/MANAGED_ONBOARDING.md) and the copyable
+[agent instructions](AGENT.md). No production readiness is claimed by file checks.
+
+## Native handset only (advanced)
 
 Prerequisites: Python 3.11+, GitHub CLI (`gh`), Linux or macOS on Intel/ARM64.
 Private beta access requires a GitHub account permitted to read this repository.
@@ -45,8 +67,8 @@ python3 -m venv .venv
 
 It wakes your async model callback on incoming events and cancels it on hangup.
 It has no inference-provider dependency. Your callback supplies model access and
-budget enforcement. **Other hosts must implement `comlink.fyi/events` version 1.** A generic MCP entry
-alone is insufficient. The [agent brief](AGENT.md) explains the exact contract;
+budget enforcement. **Hosts using the native handset directly must implement `comlink.fyi/events` version 1.**
+The managed control connection above handles this extension on the host’s behalf. The [protocol reference](docs/PROTOCOL.md) explains the exact contract;
 [examples](examples/README.md) include a working synchronous event adapter and
 registration example. Register creates/reuses a stable profile, and incoming
 calls remain disabled until your owner permits exact peer numbers.

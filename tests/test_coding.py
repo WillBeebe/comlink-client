@@ -17,8 +17,10 @@ class CodingTests(unittest.TestCase):
         for names in (TOOLS, TOOLS | CONTACT_TOOLS):
             validate_tool_list({'tools':[{'name':n} for n in names]})
         self.assertNotIn('contacts_save',TOOLS)
+        validate_tool_list({'tools':[{'name':n} for n in TOOLS | {'update_profile', 'shell'}]})
+        self.assertNotIn('shell', TOOLS)
         with self.assertRaises(ComlinkError):
-            validate_tool_list({'tools':[{'name':n} for n in TOOLS | {'shell'}]})
+            validate_tool_list({'tools':[{'name':n} for n in TOOLS - {'say'}]})
 
     def test_unverified_runtimes_refused_before_launch(self):
         for runtime in ('cursor','grok-build'):

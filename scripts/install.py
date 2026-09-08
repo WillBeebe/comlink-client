@@ -21,8 +21,26 @@ def verify(directory, pin, asset):
     metadata=json.loads((directory/'release.json').read_text())
     if metadata.get('event_version')!=1 or metadata.get('client_only_commands') is not True: raise ValueError('incompatible release')
 
+def reuse_existing(target, artifact, *, upgrade=False):
+    s=target.lstat()
+    if not stat.S_ISREG(s.st_mode) or s.st_uid!=os.geteuid() or s.st_mode&0o022 or not s.st_mode&0o111:
+        raise ValueError('installed client has unsafe ownership, permissions or type')
+    if digest(target)==digest(artifact):return 'reused'
+    if not upgrade:raise ValueError('installed client differs; use --upgrade for the reviewed pin')
+    old_digest=digest(target)
+    backup=target.parent/('comlink.previous-'+old_digest[:16])
+    if backup.exists() or backup.is_symlink():
+        if backup.is_symlink() or digest(backup)!=old_digest:raise ValueError('rollback executable conflicts')
+    else:os.link(target,backup)
+    if digest(target)!=old_digest:raise ValueError('installed client changed during upgrade')
+    artifact.chmod(0o755)
+    os.replace(artifact,target)
+    return 'upgraded'
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--upgrade',action='store_true',help='atomically install the reviewed pin, retaining the previous executable; running processes keep their current inode')
+    p.add_argument('--reuse',action='store_true',help='verify and reuse an already installed identical pinned handset')
     p.add_argument('--latest',action='store_true',help='explicitly select newest non-draft release instead of repository pin')
     a=p.parse_args()
     if os.geteuid()==0: raise ValueError('install as your ordinary user, without sudo')
@@ -48,11 +66,16 @@ def main():
             if not stat.S_ISDIR(s.st_mode) or s.st_uid!=os.geteuid() or s.st_mode&0o022: raise ValueError('install parent has unsafe owner or permissions')
     directory.mkdir(parents=True,exist_ok=True,mode=0o700)
     target=directory/'comlink'
-    if target.exists() or target.is_symlink(): raise ValueError('client already installed; stop it and move the old executable aside before upgrading; keep your profile')
+    if target.is_symlink(): raise ValueError('installed client must not be a symlink')
+    if target.exists() and not (a.reuse or a.upgrade): raise ValueError('client already installed; use --reuse to verify the pinned handset, or stop it before an explicit upgrade')
     with tempfile.TemporaryDirectory(prefix='.comlink-install-',dir=directory) as temp:
         stage=Path(temp)
         subprocess.run(['gh','release','download',lock['tag'],'--repo',REPO,'--dir',str(stage),'--pattern','SHA256SUMS','--pattern',asset,'--pattern','release.json','--pattern','THIRD_PARTY_NOTICES.txt'],check=True)
         verify(stage,lock['manifest_sha256'],asset)
+        if target.exists():
+            outcome=reuse_existing(target,stage/asset,upgrade=a.upgrade)
+            print(f'{outcome.capitalize()} verified {lock["tag"]}: {target}; identity preserved, running calls uninterrupted.')
+            return
         (stage/asset).chmod(0o755)
         # Exclusive creation: never overwrite an existing client, even in a race.
         os.link(stage/asset,target)

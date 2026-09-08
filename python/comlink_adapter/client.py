@@ -10,7 +10,7 @@ CONTACT_TOOLS = frozenset({'my_number', 'contacts_list', 'contacts_save', 'conta
 
 def validate_tool_list(listed):
     names = [t['name'] for t in listed['tools']]
-    if len(names) != len(set(names)) or not TOOLS <= set(names) <= TOOLS | CONTACT_TOOLS:
+    if len(names) != len(set(names)) or not TOOLS <= set(names):
         raise ComlinkError('unexpected handset tools')
 
 TERMINAL = frozenset({'reject', 'hangup', 'closed', 'disconnected'})

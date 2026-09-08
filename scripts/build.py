@@ -1,6 +1,12 @@
-import hashlib,json,os,subprocess
+import argparse,hashlib,json,os,re,subprocess
 from pathlib import Path
-root=Path(__file__).resolve().parents[1]; out=root/'dist';out.mkdir(exist_ok=True)
+root=Path(__file__).resolve().parents[1]
+p=argparse.ArgumentParser(description='Build an immutable candidate client release; pin only after publication.')
+p.add_argument('--version',required=True)
+p.add_argument('--out',type=Path,required=True)
+a=p.parse_args()
+if not re.fullmatch(r'0\.[0-9]+\.[0-9]+-beta\.[0-9]+',a.version):raise RuntimeError('explicit beta version required')
+out=a.out.resolve();out.mkdir(parents=True,exist_ok=False)
 expected_nex='73814649998b202d2b9964a28814367d2e285e52'
 actual=subprocess.check_output(['git','-C',str(root.parent/'nex'),'rev-parse','HEAD'],text=True).strip()
 if actual!=expected_nex: raise RuntimeError('exact approved private Nex revision required')
@@ -20,12 +26,12 @@ artifacts={}
 for system in ['linux','darwin']:
  for arch in ['amd64','arm64']:
   name=f'comlink-{system}-{arch}'
-  subprocess.run(['go','build','-mod=readonly','-trimpath','-buildvcs=false','-ldflags=-s -w','-o',str(out/name),'./cmd/comlink'],cwd=root,env=dict(env,GOOS=system,GOARCH=arch),check=True)
+  subprocess.run(['go','build','-mod=readonly','-trimpath','-buildvcs=false','-ldflags=-s -w -X main.version='+a.version,'-o',str(out/name),'./cmd/comlink'],cwd=root,env=dict(env,GOOS=system,GOARCH=arch),check=True)
   artifacts[name]=hashlib.sha256((out/name).read_bytes()).hexdigest()
-metadata={'version':'0.3.0-beta.3','event_version':1,'client_only_commands':True,'nex_revision':'73814649998b202d2b9964a28814367d2e285e52','go_version':run(['go','version']).strip(),'artifacts':artifacts,'private_beta':True,'source_build_requires_private_nex':True}
+metadata={'version':a.version,'event_version':1,'client_only_commands':True,'nex_revision':'73814649998b202d2b9964a28814367d2e285e52','go_version':run(['go','version']).strip(),'artifacts':artifacts,'private_beta':True,'source_build_requires_private_nex':True}
 (out/'release.json').write_text(json.dumps(metadata,indent=2,sort_keys=True)+'\n')
 files=sorted(p for p in out.iterdir() if p.name!='SHA256SUMS')
 (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in files))
 pin=hashlib.sha256((out/'SHA256SUMS').read_bytes()).hexdigest()
-(root/'release-lock.json').write_text(json.dumps({'tag':'v0.3.0-beta.3','manifest_sha256':pin},indent=2)+'\n')
+(out/'candidate-release-lock.json').write_text(json.dumps({'tag':'v'+a.version,'manifest_sha256':pin},indent=2)+'\n')
 print(json.dumps({'manifest_sha256':pin,'artifacts':artifacts}))
