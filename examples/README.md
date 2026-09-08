@@ -77,3 +77,8 @@ Only knowledge exchange performs encryption; no example implements HE, durable
 custody or consensus. Read each example’s scope before integrating it. To connect
 real agents, follow [client onboarding](../AGENT.md) and then apply the pattern at
 your endpoint’s trusted tool boundary.
+
+## Nexum collaboration applications
+
+See [COLLABORATION.md](COLLABORATION.md) for the five real framework-backed
+applications, dependency setup and isolated acceptance checks.

@@ -1,81 +1,103 @@
-// Standalone teaching example. No Nexum core or Comlink service imports.
+// A local scheduler reserves one device and enforces dispatch at the boundary.
 package main
 
 import (
 	"errors"
-	"fmt"
+	"github.com/WillBeebe/comlink-client/examples/internal/lab"
 	"sync"
+	"time"
 )
 
-func require(ok bool, why string) {
+type lease struct {
+	ID, Device string
+	Owner      lab.Public
+	Start, End time.Time
+	MemoryMiB  int
+}
+type reservation struct {
+	terms         lease
+	running, done bool
+}
+type scheduler struct {
+	mu       sync.Mutex
+	capacity int
+	leases   map[string]*reservation
+}
+
+func newScheduler(memory int) *scheduler {
+	return &scheduler{capacity: memory, leases: map[string]*reservation{}}
+}
+func (s *scheduler) reserve(l lease, sig []byte, now time.Time) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if e := lab.Verify(l.Owner, "lease", l, sig); e != nil {
+		return e
+	}
+	if l.ID == "" || l.Device != "gpu-0" || l.Start.Before(now) || !l.End.After(l.Start) || l.MemoryMiB <= 0 || l.MemoryMiB > s.capacity {
+		return errors.New("invalid lease")
+	}
+	if _, ok := s.leases[l.ID]; ok {
+		return errors.New("duplicate lease")
+	}
+	for _, r := range s.leases {
+		if l.Start.Before(r.terms.End) && r.terms.Start.Before(l.End) {
+			return errors.New("device already reserved")
+		}
+	}
+	s.leases[l.ID] = &reservation{terms: l}
+	return nil
+}
+
+type dispatch struct{ LeaseID, Job string }
+
+func (s *scheduler) run(d dispatch, sig []byte, now time.Time) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	r, ok := s.leases[d.LeaseID]
 	if !ok {
-		panic(why)
+		return "", errors.New("unknown lease")
 	}
-}
-func refused(err error, why string) { require(err != nil, why); fmt.Println("REFUSED:", why) }
-
-type Slot struct {
-	owner      string
-	start, end int
-	used       bool
-}
-type Scheduler struct {
-	mu    sync.Mutex
-	slots []*Slot
-}
-
-func (s *Scheduler) reserve(owner string, start, end int) (*Slot, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if owner == "" || start < 0 || start >= end {
-		return nil, errors.New("invalid reservation")
+	if e := lab.Verify(r.terms.Owner, "dispatch", d, sig); e != nil {
+		return "", e
 	}
-	for _, slot := range s.slots {
-		if start < slot.end && slot.start < end {
-			return nil, errors.New("overlap")
-		}
+	if now.Before(r.terms.Start) || !now.Before(r.terms.End) || r.running || r.done {
+		return "", errors.New("lease unavailable")
 	}
-	slot := &Slot{owner: owner, start: start, end: end}
-	s.slots = append(s.slots, slot)
-	return slot, nil
-}
-func (s *Scheduler) run(slot *Slot, owner string, now int) (int, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	admitted := false
-	for _, entry := range s.slots {
-		if entry == slot {
-			admitted = true
-		}
+	if d.Job != "vector-sum-v1" {
+		return "", errors.New("job not admitted")
 	}
-	if !admitted || owner != slot.owner || now < slot.start || now >= slot.end || slot.used {
-		return 0, errors.New("dispatch refused")
+	r.running = true
+	// Fixed, bounded CPU fixture stands in for a device adapter. There is no GPU claim.
+	sum := 0
+	for i := 0; i < 1024; i++ {
+		sum += i
 	}
-	slot.used = true
-	// Fixed bounded CPU fixture. Never executes caller-supplied code.
-	total := 0
-	for i := 1; i <= 100; i++ {
-		total += i
-	}
-	return total, nil
+	r.running = false
+	r.done = true
+	return lab.Hash(struct {
+		Lease, Job string
+		Sum        int
+	}{d.LeaseID, d.Job, sum}), nil
 }
 func main() {
-	s := Scheduler{}
-	slot, err := s.reserve("researcher", 10, 20)
-	require(err == nil, "reservation failed")
-	_, err = s.reserve("peer", 15, 25)
-	refused(err, "overlapping reservation")
-	_, err = s.reserve("peer", 20, 30)
-	require(err == nil, "adjacent slot refused")
-	_, err = s.run(slot, "stranger", 12)
-	refused(err, "wrong owner")
-	_, err = s.run(slot, "researcher", 9)
-	refused(err, "early dispatch")
-	_, err = s.run(slot, "researcher", 20)
-	refused(err, "expired dispatch")
-	value, err := s.run(slot, "researcher", 12)
-	require(err == nil && value == 5050, "work failed")
-	_, err = s.run(slot, "researcher", 13)
-	refused(err, "replayed dispatch")
-	fmt.Println("PASS: exclusive slot reserved and bounded CPU task completed")
+	now := time.Now().UTC()
+	renter, provider := lab.NewIdentity(), lab.NewIdentity()
+	l := lease{"lease-1", "gpu-0", lab.PublicOf(renter), now, now.Add(time.Minute), 4096}
+	s := newScheduler(8192)
+	c, e := lab.New("compute-lease", lab.PublicOf(renter), lab.PublicOf(provider), 4, l, now, now.Add(2*time.Minute))
+	lab.Must(e)
+	lab.Must(c.Execute(renter, "lock", "", now))
+	lab.Must(s.reserve(l, lab.Sign(renter, "lease", l), now))
+	lab.Must(c.Execute(provider, "agree", "", now))
+	overlap := l
+	overlap.ID = "lease-2"
+	if s.reserve(overlap, lab.Sign(renter, "lease", overlap), now) == nil {
+		panic("overlap allowed")
+	}
+	d := dispatch{l.ID, "vector-sum-v1"}
+	receipt, e := s.run(d, lab.Sign(renter, "dispatch", d), now)
+	lab.Must(e)
+	lab.Must(c.Execute(renter, "settle", receipt, now))
+	lab.Must(c.VerifyReceipts())
+	lab.Print(map[string]any{"example": "compute-lease", "status": c.Status(), "overlapping_reservation": "refused", "receipt": c.Head(), "executor": "bounded CPU fixture; GPU adapter required"})
 }

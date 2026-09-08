@@ -1,75 +1,134 @@
-// Standalone teaching example. No Nexum core or Comlink service imports.
+// Contributions are aggregated with Nex's additive HE and milestone-gated release.
 package main
 
 import (
 	"errors"
-	"fmt"
+	"github.com/WillBeebe/comlink-client/examples/internal/lab"
+	"github.com/WillBeebe/nexum/nex"
+	"sync"
+	"time"
 )
 
-func require(ok bool, why string) {
+type contribution struct {
+	Fund, Contributor string
+	Amount            int64
+}
+type milestone struct{ Fund, Artifact string }
+type fund struct {
+	mu               sync.Mutex
+	id               string
+	target           int64
+	deadline         time.Time
+	members          map[string]lab.Public
+	verifier         lab.Public
+	ledger           *nex.EncryptedLedger
+	sealed           [][]byte
+	seen             map[string]bool
+	released         bool
+	expectedArtifact string
+}
+
+func newFund(id string, target int64, members []lab.Public, verifier lab.Public, artifact string, deadline time.Time) (*fund, error) {
+	if id == "" || target <= 0 || artifact == "" || len(members) < 2 || len(members) > 32 {
+		return nil, errors.New("invalid fund")
+	}
+	if e := verifier.Validate(); e != nil {
+		return nil, e
+	}
+	l, e := nex.NewEncryptedLedger(2048)
+	if e != nil {
+		return nil, e
+	}
+	f := &fund{id: id, target: target, deadline: deadline, members: map[string]lab.Public{}, verifier: verifier, ledger: l, seen: map[string]bool{}, expectedArtifact: artifact}
+	for _, p := range members {
+		if e := p.Validate(); e != nil {
+			return nil, e
+		}
+		if _, ok := f.members[p.ID()]; ok {
+			return nil, errors.New("duplicate member")
+		}
+		f.members[p.ID()] = p
+	}
+	// Contributions bind the complete immutable fund terms.
+	f.id = lab.Hash(struct {
+		ID       string
+		Target   int64
+		Members  []lab.Public
+		Verifier lab.Public
+		Artifact string
+		Deadline time.Time
+	}{id, target, members, verifier, artifact, deadline})
+	return f, nil
+}
+func (f *fund) contribute(c contribution, sig []byte, now time.Time) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	p, ok := f.members[c.Contributor]
 	if !ok {
-		panic(why)
+		return errors.New("unadmitted contributor")
 	}
-}
-func refused(err error, why string) { require(err != nil, why); fmt.Println("REFUSED:", why) }
-
-type Fund struct {
-	target, total int
-	contributions map[string]int
-	consent       map[string]bool
-	paid          bool
-}
-
-func (f *Fund) pledge(peer string, amount int) error {
-	if f.paid || peer == "" || amount <= 0 || f.contributions[peer] != 0 || amount > f.target-f.total {
-		return errors.New("pledge refused")
+	if e := lab.Verify(p, "contribution", c, sig); e != nil {
+		return e
 	}
-	f.contributions[peer] = amount
-	f.total += amount
+	if c.Fund != f.id || c.Amount <= 0 || c.Amount > f.target || f.released || f.seen[c.Contributor] || !now.Before(f.deadline) {
+		return errors.New("contribution refused")
+	}
+	// Encryption takes place at this trusted local custody boundary. Plaintext
+	// inputs and keys share this process; the evaluator only receives ciphertext.
+	ct, e := f.ledger.SealLock(c.Amount)
+	if e != nil {
+		return e
+	}
+	f.sealed = append(f.sealed, ct)
+	f.seen[c.Contributor] = true
 	return nil
 }
-func (f *Fund) optIn(peer string) error {
-	if f.contributions[peer] == 0 || f.paid {
-		return errors.New("not a contributor")
+func (f *fund) release(m milestone, sig []byte, artifact []byte, now time.Time) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if e := lab.Verify(f.verifier, "milestone", m, sig); e != nil {
+		return "", e
 	}
-	f.consent[peer] = true
-	return nil
-}
-func (f *Fund) settle(artifact []string) error {
-	if f.paid || f.total != f.target {
-		return errors.New("fund not ready")
+	if m.Fund != f.id || m.Artifact != f.expectedArtifact || lab.Hash(artifact) != m.Artifact || f.released || !now.Before(f.deadline) {
+		return "", errors.New("milestone refused")
 	}
-	for peer := range f.contributions {
-		if !f.consent[peer] {
-			return errors.New("missing opt-in")
-		}
+	sum, e := f.ledger.Aggregate(f.sealed)
+	if e != nil {
+		return "", e
 	}
-	// Trusted milestone predicate: an agreed three-part artifact in order.
-	expected := []string{"plan", "prototype", "review"}
-	if len(artifact) != len(expected) {
-		return errors.New("incomplete milestone")
+	proof, e := f.ledger.ProveEqual(sum, f.target)
+	if e != nil {
+		return "", e
 	}
-	for i := range expected {
-		if artifact[i] != expected[i] {
-			return errors.New("invalid milestone")
-		}
+	ok, e := f.ledger.VerifyEqual(sum, f.target, proof)
+	if e != nil {
+		return "", e
 	}
-	f.paid = true
-	return nil
+	if !ok {
+		return "", errors.New("funding target not met exactly")
+	}
+	f.released = true
+	return lab.Hash(struct {
+		Milestone  milestone
+		Sum, Proof []byte
+		Target     int64
+	}{m, sum, proof, f.target}), nil
 }
 func main() {
-	f := Fund{target: 10, contributions: map[string]int{}, consent: map[string]bool{}}
-	require(f.pledge("one", 4) == nil, "pledge failed")
-	refused(f.pledge("one", 4), "duplicate contribution")
-	refused(f.pledge("two", 7), "overfunding")
-	refused(f.settle([]string{"plan", "prototype", "review"}), "underfunded settlement")
-	require(f.pledge("two", 6) == nil, "second pledge failed")
-	refused(f.optIn("stranger"), "nonparticipant opt-in")
-	require(f.optIn("one") == nil, "opt-in failed")
-	refused(f.settle([]string{"plan", "prototype", "review"}), "missing participant consent")
-	require(f.optIn("two") == nil, "second opt-in failed")
-	refused(f.settle([]string{"plan"}), "incomplete milestone")
-	require(f.settle([]string{"plan", "prototype", "review"}) == nil, "valid settlement failed")
-	refused(f.settle([]string{"plan", "prototype", "review"}), "duplicate payout")
-	fmt.Println("PASS: target met, unanimous opt-in, milestone checked, demonstration fund settled")
+	now := time.Now().UTC()
+	a, b, verifier := lab.NewIdentity(), lab.NewIdentity(), lab.NewIdentity()
+	artifact := []byte("shared-cache-healthcheck:v1:passed")
+	f, e := newFund("shared-cache-1", 10, []lab.Public{lab.PublicOf(a), lab.PublicOf(b)}, lab.PublicOf(verifier), lab.Hash(artifact), now.Add(time.Hour))
+	lab.Must(e)
+	for n, i := range []lab.Identity{a, b} {
+		c := contribution{f.id, lab.PublicOf(i).ID(), int64(4 + 2*n)}
+		lab.Must(f.contribute(c, lab.Sign(i, "contribution", c), now))
+	}
+	m := milestone{f.id, lab.Hash(artifact)}
+	receipt, e := f.release(m, lab.Sign(verifier, "milestone", m), artifact, now)
+	lab.Must(e)
+	if _, e = f.release(m, lab.Sign(verifier, "milestone", m), artifact, now); e == nil {
+		panic("duplicate release")
+	}
+	lab.Print(map[string]any{"example": "collective-fund", "contributors": len(f.seen), "funding_target": f.target, "milestone": "verified", "evaluation": "Paillier ciphertext aggregation and equality proof", "receipt": receipt, "individual_amounts_logged": false})
 }

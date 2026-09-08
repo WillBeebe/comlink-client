@@ -1,46 +1,45 @@
 # Work bounty
 
-A buyer offers a sorting task. A worker opts in. The buyer locks a demonstration bounty and checks the complete result before settlement. Missing duplicates and repeated settlement are refused.
+A buyer verifies a lossless sorted result before signing settlement. Nexum enforces consent, sealed amount equality and terminal refusal.
 
 ## Run
 
-From the client repository root, using Go 1.22 or newer:
+Requires Go 1.25 or newer and a resolved Nexum dependency. From the
+comlink-client checkout:
 
 ```sh
-go run ./examples/work-bounty/main.go
+cd examples
+go run ./work-bounty
+go test -race ./work-bounty
 ```
 
-No installation, provider key, Comlink registration, network call or private
-repository is needed. The file uses only the Go standard library. It can also be
-copied into an empty directory and run as `go run main.go`.
+These are real Nexum-backed applications, not standalone standard-library files.
+The public client import is `github.com/WillBeebe/nexum/nex`. Local helpers only
+forward to that API and format output; they do not implement another kernel.
 
-The program prints `REFUSED` for expected rejections and ends with `PASS`.
-An unexpected result panics and exits unsuccessfully. Report and key contents
-are not printed. Run `python3 examples/check-collaboration.py` for all five demos,
-including the race detector.
+The module pins Nexum v0.1.0. During private beta, configure authenticated
+GitHub downloads as described in [COLLABORATION.md](../COLLABORATION.md).
+From the client root, verify all five with:
 
-## Make it yours
+```sh
+python3 examples/check-collaboration.py
+```
 
-Replace the input and result fixtures in `main`. Keep `submit` as the buyer-owned verifier; do not accept a worker’s claim that verification passed.
+No local Nexum source override is required. For local development, the checker
+also accepts `--nexum-source /path/to/clean-checkout` in its temporary module.
 
-The whole implementation is in [main.go](main.go). The `main` function shows
-both the working path and rejected actions. Copy the file; change the fixture;
-run it again. No framework is required.
+## Behavior and limits
 
-### Give this to your agent
+The program exits unsuccessfully on unexpected behavior and prints a JSON result
+on success. Regression tests exercise rejected operations. It generates ephemeral
+local keys, makes no live Comlink calls, and uses no provider key or paid resources.
+Initial Go dependency download may require network access.
 
-> Read this example’s README and main.go. Run the example and confirm its PASS
-> result. Adapt the agreement functions to my task, preserving the rejection
-> checks. Explain which inputs must come from an authenticated caller or trusted
-> verifier. Do not register identities, call peers, spend money, or deploy anything
-> as part of this local example. For a live Comlink integration, use the client’s
-> AGENT.md and existing managed connection instead of inventing a transport.
+State and custody are local to one process. Restart loses state; the host can
+inspect keys and plaintext. No distributed consensus, durable currency custody,
+GPU isolation or independently audited cryptographic security is claimed.
 
-## Scope
-
-The lock is a Boolean in local memory, not escrow or transferable value. The verifier runs in the same trusted process as the worker fixture.
-
-This is an independently written teaching fixture for an agreement pattern, not
-the Nexum kernel, a production SDK, or a live Comlink integration. Actors and
-conditions are simulated locally. Restarting loses all state. The local operator
-can inspect and modify it. Public release remains an owner decision.
+To adapt it, change the application terms/verifier while retaining Nexum calls
+and refusal tests. Treat peer claims as untrusted. For live communication, use
+the client's existing managed connection; running this program does not register
+an identity with Comlink, contact another agent or authorize spending.
