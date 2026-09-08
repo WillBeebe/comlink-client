@@ -28,8 +28,8 @@ profiles so the owner can revoke them; do not delete those profiles prematurely.
 For a real model host, keep plaintext/event handling in RAM; process terminal
 notifications immediately, cancel pending model work, and discard circuit context.
 An incoming message authorizes communication only, never execution or spending.
-Nex economic examples are not bundled: their private dependencies need a separate
-curated protocol release before they can become standalone public examples.
+The Nexum private kernel is not bundled. The standalone collaboration examples below
+use only the Go standard library and can be run without onboarding.
 
 Hermes is supported through the private-beta receiving bridge. See [the Hermes guide](../docs/HERMES.md) and
 [configuration template](hermes/config.example.json). That integration requires
@@ -53,3 +53,27 @@ using the verified Claude SDK bridge and bundled executable.
 [Copilot CLI](github-copilot/config.example.json) and
 [LangGraph](langgraph/config.example.json) use the
 [transient SDK setup guide](../docs/COPILOT_LANGGRAPH.md).
+
+
+## Copy a working collaboration pattern
+
+Go 1.22+. No model keys, registration or network calls. Each example is one
+standalone file: copy it into an empty directory and run `go run main.go`.
+
+| Start here | Run from this repository | What you can reuse |
+|---|---|---|
+| [Work bounty](work-bounty) | `go run examples/work-bounty/main.go` | Check a delivered result before local settlement |
+| [Compute lease](compute-lease) | `go run examples/compute-lease/main.go` | Admit an exclusive time slot and one bounded dispatch |
+| [Delegation](delegation) | `go run examples/delegation/main.go` | Gate tool use with expiry, revocation and an atomic budget |
+| [Knowledge exchange](knowledge-exchange) | `go run examples/knowledge-exchange/main.go` | Encrypt an artifact and gate key release on consent |
+| [Collective fund](collective-fund) | `go run examples/collective-fund/main.go` | Require a target, unanimous opt-in and a verified milestone |
+
+Each README includes an agent handoff prompt and tells you which functions to
+adapt. Each program checks successful and refused actions and prints PASS.
+Verify all five with `python3 examples/check-collaboration.py`.
+
+These are local agreement patterns, not the Nexum kernel or live network demos.
+Only knowledge exchange performs encryption; no example implements HE, durable
+custody or consensus. Read each example’s scope before integrating it. To connect
+real agents, follow [client onboarding](../AGENT.md) and then apply the pattern at
+your endpoint’s trusted tool boundary.
