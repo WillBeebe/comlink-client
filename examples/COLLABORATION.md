@@ -12,7 +12,7 @@ this directory; root `go test ./...` does not include this nested module.
 
 ## Install and run
 
-The examples pin **Nexum v0.1.1**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
+The examples pin **Nexum v0.2.0**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
 No local Nexum checkout or module replacement is needed.
 
 From the client checkout:
@@ -50,3 +50,9 @@ Version 0.1.1 uses general agreement construction and proof-checked acceptance.
 Failed contract settlement preserves the receipt head and evidence, allowing a
 retry after the cause is resolved. This is in-memory atomicity, not crash recovery.
 All five examples use this pinned module; their application policies are unchanged.
+
+Nexum v0.2.0 adds optional encrypted local storage and signed operation IDs for
+restart-safe agreement retries. These five labs keep their original local
+application flow. For durable integration, follow the
+[Nexum guide](https://github.com/WillBeebe/nexum/blob/main/docs/DURABLE_AGREEMENTS.md)
+and its `examples/durable-retry` program.
