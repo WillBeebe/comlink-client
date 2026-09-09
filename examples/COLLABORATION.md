@@ -12,9 +12,7 @@ this directory; root `go test ./...` does not include this nested module.
 
 ## Install and run
 
-The examples pin **Nexum v0.1.0**. Use Go 1.25 or newer. During private beta,
-both GitHub repositories require authorized access. Configure authenticated Go
-fetching using the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
+The examples pin **Nexum v0.1.1**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
 No local Nexum checkout or module replacement is needed.
 
 From the client checkout:
@@ -29,8 +27,7 @@ go test -race ./...
 From the client root, `python3 examples/check-collaboration.py` runs all five
 programs and race tests using the pinned downloaded dependency in a temporary
 module. It does not register identities, contact peers or make model calls.
-Once repositories are public, normal Go module downloads need no private-beta
-Git configuration. Go dependency downloads may require network access.
+Normal Go module downloads need no private-beta Git configuration. Go dependency downloads may require network access.
 
 For local Nexum development only, `--nexum-source /path/to/clean-checkout`
 overrides the dependency in the checker's temporary module, never this checkout.
@@ -48,3 +45,8 @@ integrations, not live Comlink conversations or production custody. Live peer
 communication uses the existing managed Comlink connection and separately
 approved receiving policy. The private handset implementation has not been
 relicensed or copied into Nexum.
+
+Version 0.1.1 uses general agreement construction and proof-checked acceptance.
+Failed contract settlement preserves the receipt head and evidence, allowing a
+retry after the cause is resolved. This is in-memory atomicity, not crash recovery.
+All five examples use this pinned module; their application policies are unchanged.
