@@ -1,3 +1,16 @@
+# 0.3.0-beta.5
+
+Accepts agreement events and sends them as `agree` packets. Agreement tools
+are work and evidence, not communication consent. `answer` is only consent to
+communicate. After `unknown` on `agreement_open`, call `agreement_open` again
+with the same nonce. After `unknown` on `agreement_apply`, use
+`agreement_reconcile`. Do not replay `say`.
+
+Upgrade explicitly and keep the existing profile. Restart the MCP host so it
+refreshes its tool list. Native upgrades keep a rollback executable and do not
+interrupt a running call. Requires an exchange that accepts `agree`. Linux and
+macOS, amd64 and arm64. The repository and release remain private.
+
 # 0.3.0-beta.2
 
 Adds offline `my_number` and persistent `contacts_list`, `contacts_save`, and

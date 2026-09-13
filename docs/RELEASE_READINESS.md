@@ -23,7 +23,7 @@ Changing this repository's visibility does not authorize their publication.
 ## Reproduce a private beta
 
 With an authorized, clean sibling Nex checkout at
-`73814649998b202d2b9964a28814367d2e285e52`, Go 1.26.5, and this checkout:
+`4f09951bde45e9297951428c456417ea4aab7d04`, Go 1.25 or newer, and this checkout:
 
 ```sh
 go test ./cmd/comlink
