@@ -16,8 +16,11 @@ import (
 	"sync"
 	"time"
 
+	"comlink/internal/agreement"
+
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"nexum/circuit"
+	"nexum/nex"
 )
 
 type Config struct {
@@ -45,9 +48,10 @@ type Phone struct {
 	mu         sync.Mutex
 	operations sync.Mutex
 	calls      map[string]*liveCall
-	notify     func(Event)
-	done       chan struct{}
-	disconnect sync.Once
+	notify      func(Event)
+	done        chan struct{}
+	disconnect  sync.Once
+	agreements  *agreement.Session
 }
 type authTransport struct {
 	base  http.RoundTripper
@@ -299,7 +303,7 @@ func (p *Phone) Act(ctx context.Context, id, action, text string) error {
 			packet.Key = c.Private.PublicKey().Bytes()
 			packet.Sign(p.Config.Identity)
 		}
-	case "say":
+	case "say", "agree":
 		if c.State.Phase != "accepted" {
 			p.mu.Unlock()
 			return errors.New("recipient has not answered")
@@ -366,9 +370,12 @@ func (p *Phone) receive(event Event) {
 	}
 	packet := event.Packet
 	event.Call = packet.Call
+	var agreementPlain []byte
+	var agreementSender nex.Public
+	var agreements *agreement.Session
 	validType := event.Type == "ring" && packet.Type == "dial"
 	switch event.Type {
-	case "answer", "reject", "say", "hangup":
+	case "answer", "reject", "say", "agree", "hangup":
 		validType = event.Type == packet.Type
 	}
 	if !validType {
@@ -400,14 +407,27 @@ func (p *Phone) receive(event Event) {
 						c.Key, e = circuit.Key(c.Private, packet.Key, c.State)
 						c.Private = nil
 					}
-				case "say":
+				case "say", "agree":
 					owner := c.State.Caller.Owner
 					if packet.From == c.State.Callee.Number {
 						owner = c.State.Callee.Owner
 					}
 					var text []byte
 					text, e = circuit.Unseal(c.Key, packet, owner)
-					event.Text = string(text)
+					if e != nil {
+						break
+					}
+					if packet.Type == "agree" || agreement.IsEnvelope(text) {
+						event.Text = ""
+						if agreement.IsEnvelope(text) {
+							agreementPlain = append([]byte(nil), text...)
+							agreementSender = owner
+							agreements = p.agreements
+						}
+						clear(text)
+					} else if packet.Type == "say" {
+						event.Text = string(text)
+					}
 				case "reject", "hangup":
 					clear(c.Key)
 					c.Private = nil
@@ -426,6 +446,16 @@ func (p *Phone) receive(event Event) {
 		}
 	}
 	p.mu.Unlock()
+	skipNotify := packet.Type == "agree" && agreementPlain == nil
+	if e == nil && agreementPlain != nil {
+		if agreements == nil || agreements.Incoming(agreementPlain, agreementSender) != nil {
+			skipNotify = true
+		} else {
+			event.Type = "agreement"
+			event.Text = ""
+		}
+		clear(agreementPlain)
+	}
 	if closed && p.notify != nil {
 		p.notify(Event{Type: "closed", Call: packet.Call})
 	}
@@ -434,9 +464,37 @@ func (p *Phone) receive(event Event) {
 		// handler's stack. Dropping the session also ends the peer's circuit.
 		go p.Close()
 	}
-	if e == nil && p.notify != nil {
+	if e == nil && !skipNotify && p.notify != nil {
 		event.State = nil
 		event.Packet.Body = nil
 		p.notify(event)
 	}
+}
+
+func (p *Phone) AttachAgreements(s *agreement.Session) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.agreements = s
+}
+
+func (p *Phone) Agreements() *agreement.Session {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.agreements
+}
+
+func (p *Phone) acceptedPeer(call string) (nex.Public, string, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	c := p.calls[call]
+	if c == nil || c.State.Phase != "accepted" || len(c.Key) == 0 {
+		return nex.Public{}, "", errors.New("answered call required")
+	}
+	if c.State.Caller.Number == p.Config.Credential.Number {
+		return c.State.Callee.Owner, c.State.Callee.Number, nil
+	}
+	if c.State.Callee.Number == p.Config.Credential.Number {
+		return c.State.Caller.Owner, c.State.Caller.Number, nil
+	}
+	return nex.Public{}, "", errors.New("answered call required")
 }

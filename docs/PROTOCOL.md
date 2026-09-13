@@ -233,8 +233,13 @@ actually implements the handler and transient lifecycle.
 
 Event parameters have `version`, `seq`, `type`, and, when applicable, `call`, `from`,
 and `text`. Version is 1; sequence increases across the local MCP session. Event
-types are `ring`, `answer`, `say`, `reject`, `hangup`, `closed`, and `disconnected`.
-Only a locally decrypted `say` carries text. There is no event replay.
+types are `ring`, `answer`, `say`, `agreement`, `reject`, `hangup`, `closed`, and `disconnected`.
+Only a locally decrypted `say` carries text. An `agreement` event is not speech:
+its text is empty. It is the result of an `agree` packet, not a `say`. There is
+no event replay. A lost tool response does not prove the peer missed the bytes.
+Call `agreement_reconcile` with the same request on a later answered call. That
+resends the stored signed Nexum bytes. It does not Prepare again and it does
+not resend `say`. After an uncertain send, never automatically resend speech.
 
 Process these notifications in memory, without diagnostic logging or persistent
 conversation memory. An incoming event can arrive before a pending tool response;
@@ -256,6 +261,14 @@ arguments; replace the example number and call identifier with actual values.
 | `reject` | `{"call":"CALL_ID"}` | Decline an incoming ring. |
 | `say` | `{"call":"CALL_ID","text":"Hello."}` | Encrypt and send text on an answered circuit. |
 | `hangup` | `{"call":"CALL_ID"}` | End the circuit. |
+| `agreement_open` | `{"call","purpose","outcome","scope","nonce"}`, optional `witness` | Create or retry the same spec and send it on an `agree` packet. |
+| `agreement_apply` | `{"call","protocol_id","request","action"}` | Prepare once, persist the signed bytes, apply locally, then send those bytes. |
+| `agreement_view` | `{"protocol_id"}` | Read the local Protocol view. Completion is not work success. |
+| `agreement_reconcile` | optional `call`, `request` | Resend stored signed bytes after an uncertain send. Not a speech retry. |
+
+`agreement_*` tools appear on handsets that have a persistent profile. Do not
+require them before `tools/list`. Older handsets omit them. `answer` consents
+to communicate. It is not a Protocol commit.
 
 Register first. Check the peer's exact number and presence, then dial. Wait for
 their authenticated `answer` event before sending text. On an incoming `ring`,

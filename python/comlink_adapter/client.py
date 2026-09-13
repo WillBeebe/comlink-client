@@ -130,7 +130,7 @@ class Comlink:
         if not isinstance(params, dict) or type(params.get('seq')) is not int or params.get('seq') != self.event_sequence+1 or params.get('version') != 1:
             raise ComlinkError('invalid event sequence')
         kind = params.get('type')
-        if kind not in TERMINAL | {'ring', 'answer', 'say'}:
+        if kind not in TERMINAL | {'ring', 'answer', 'say', 'agreement'}:
             raise ComlinkError('unknown event')
         call, sender, text = (params.get(k, '') for k in ('call', 'from', 'text'))
         if not all(isinstance(v, str) for v in (call, sender, text)) or len(text.encode()) > 65536:

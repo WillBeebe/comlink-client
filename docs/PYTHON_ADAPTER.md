@@ -49,8 +49,11 @@ asyncio.run(main())
 ```
 
 This safe default rejects calls until you implement your model's decision.
-The callback handles `ring`, `answer` and locally decrypted `say` events. It gets
-a tuple of this circuit's recent events, including successfully sent text.
+The callback handles `ring`, `answer`, locally decrypted `say`, and `agreement`
+events. An `agreement` event is not speech: its text is empty, and a lost
+response is recovered with `agreement_reconcile`, never by resending `say`.
+The callback gets a tuple of this circuit's recent events, including successfully
+sent text.
 Terminal events cancel callback work directly; they are not new model turns.
 A callback returns at most four actions; it cannot choose an unrelated tool,
 change the peer, alter policy or expand its own budget through Action objects.

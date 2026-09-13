@@ -27,6 +27,9 @@ class AdapterTests(unittest.IsolatedAsyncioTestCase):
         c._event({'version':1,'seq':1,'type':'ring','call':CALL,'from':PEER})
         self.assertEqual((await c.events.get()).type,'ring')
         with self.assertRaises(ComlinkError):c._event({'version':1,'seq':1,'type':'say','call':CALL,'text':'private'})
+        c._event({'version':1,'seq':2,'type':'agreement','call':CALL,'from':PEER,'text':''})
+        self.assertEqual((await c.events.get()).type,'agreement')
+        with self.assertRaises(ComlinkError):c._event({'version':1,'seq':3,'type':'agreement','call':CALL,'from':PEER,'text':'not speech'})
         c._stop()
     async def test_ring_wakes_callback_and_hangup_cancels_it(self):
         link=FakeLink();started=asyncio.Event();cancelled=asyncio.Event()

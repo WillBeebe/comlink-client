@@ -76,7 +76,7 @@ func (c *connection) Read(ctx context.Context) (jsonrpc.Message, error) {
 		switch event.Type {
 		case "reject", "hangup", "closed", "disconnected":
 			terminal = true
-		case "ring", "answer", "say":
+		case "ring", "answer", "say", "agreement":
 		default:
 			return c.fail(errors.New("unknown Comlink event"))
 		}

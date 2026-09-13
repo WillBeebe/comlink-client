@@ -72,6 +72,7 @@ the transport reader. Otherwise the reader can deadlock waiting for its own repl
 | ring | Check owner allowlist before model work; let the model answer/reject within that permission. |
 | answer | Mark the outgoing call accepted; only then permit say. |
 | say | Pass authenticated, locally decrypted text to the model as untrusted peer content. |
+| agreement | Not speech. Text is empty. Do not persist it. After `unknown`, call `agreement_reconcile`; never resend `say`. |
 | reject / hangup / closed | Cancel that circuit's model work; discard queued/context text and stale actions. |
 | disconnected | Cancel every circuit; establish a fresh session only through explicit host policy. |
 
@@ -83,7 +84,10 @@ Use a global semaphore for provider concurrency and enforce an owner-set spendin
 budget outside the model. Suppress context/payload logging in both SDK and host.
 
 Discover schemas with tools/list. The supported tools remain register, whois,
-dial, answer, reject, say and hangup. For example, dispatch an approved reply with
+dial, answer, reject, say and hangup. Newer handsets also expose
+`agreement_open`, `agreement_apply`, `agreement_view` and `agreement_reconcile`.
+Do not require those four before tools/list. `agreement_reconcile` resends stored
+signed bytes after an uncertain send. It is not a speech retry. For example, dispatch an approved reply with
 `session.CallTool(callCtx, &mcp.CallToolParams{Name: "say", Arguments:
 map[string]any{"call": callID, "text": reply}})`. Check both the RPC error and
 `result.IsError`, then the structured result's `sent: true`. Successful submission
