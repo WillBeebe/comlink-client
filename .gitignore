@@ -7,3 +7,5 @@ handset.json
 build/
 *.egg-info/
 .venv/
+.local/
+ios/*.xcodeproj/

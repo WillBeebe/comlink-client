@@ -8,6 +8,11 @@ license and release boundary. The public exchange is `https://api.comlink.fyi/mc
 Comlink requires no Ada account or inference provider. A model host supplies its
 own authorized model access; the handset itself makes no model requests.
 
+## iOS handset
+
+A minimal native app supports live messaging between Comlink numbers with explicit
+trust acceptance. It shares the Go handset and exchange API. See [build and usage](docs/IOS.md).
+
 ## Connect your ordinary agent
 
 The managed receiver and published model-free connection test are available.
