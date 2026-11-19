@@ -12,7 +12,7 @@ this directory; root `go test ./...` does not include this nested module.
 
 ## Install and run
 
-The examples pin **Nexum v2.0.0**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
+The examples pin **Nexum v2.0.1**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
 No local Nexum checkout or module replacement is needed.
 
 From the client checkout:
@@ -51,7 +51,7 @@ Failed contract settlement preserves the receipt head and evidence, allowing a
 retry after the cause is resolved. This is in-memory atomicity, not crash recovery.
 All five examples use this pinned module; their application policies are unchanged.
 
-Nexum v2.0.0 keeps encrypted local storage and signed operation IDs, and adds
+Nexum v2.0.1 keeps encrypted local storage and signed operation IDs, and adds
 `ProtocolVersionV2` (reviewed evidence manifests and explicit `incomplete`
 deadline closeouts), `GoalStore` / `CoordinationStore` / portable `TaskHandoff`
 proofs, durable/SQL fence coordinators in `adapter`, and canonical JSON receipt
@@ -59,6 +59,6 @@ commitments under `github.com/WillBeebe/nexum/v2`. These five labs keep their
 original local application flow. For durable, return/handoff, and coordination
 integration, follow the
 [Nexum guide](https://github.com/WillBeebe/nexum/blob/main/docs/DURABLE_AGREEMENTS.md)
-and `go run github.com/WillBeebe/nexum/v2/examples/durable-retry@v2.0.0`,
-`.../return-handoff@v2.0.0`, `.../reconcile-handoff@v2.0.0`, and
-`.../coordination@v2.0.0`.
+and `go run github.com/WillBeebe/nexum/v2/examples/durable-retry@v2.0.1`,
+`.../return-handoff@v2.0.1`, `.../reconcile-handoff@v2.0.1`, and
+`.../coordination@v2.0.1`.

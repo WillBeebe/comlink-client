@@ -1,3 +1,15 @@
+# 2.0.1
+
+Patch release aligned with Nexum `v2.0.1`:
+- Preserves structured diagnostic error messages in `agreementToolResult.Agreement.Error`
+  across `agreement_open`, `agreement_apply`, and `agreement_reconcile` MCP tool errors
+  (`internal/handset/agreement_mcp.go`).
+- Pins Nexum `v2.0.1` (SQLite WAL multi-connection linearizability in
+  `adapter.SQLCoordinator.AuthorizeTx` and `maxPlanPlanners = 256` in `nex.GoalSpec`).
+- Collaboration examples in `examples/` pin `github.com/WillBeebe/nexum/v2@v2.0.1`.
+
+Upgrade explicitly and keep the existing profile. Linux and macOS, amd64 and arm64.
+
 # 2.0.0
 
 Upgrades the Comlink handset and agreement engine to Nexum `v2.0.0`

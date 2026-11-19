@@ -1,5 +1,5 @@
-github.com/WillBeebe/nexum/v2 v2.0.0 h1:azuofJn4F8P0gAEUQIOZaZrkfqXgg0gWww8KOfRwN90=
-github.com/WillBeebe/nexum/v2 v2.0.0/go.mod h1:HvbmMklnelG1CTH8/8gw/vrnac9baBK+6yhWSYrCzKI=
+github.com/WillBeebe/nexum/v2 v2.0.1 h1:NQcR1nSlCZ+bBYK1j3rK5EDw6cjzYsmpkGCL9JC6Xqw=
+github.com/WillBeebe/nexum/v2 v2.0.1/go.mod h1:HvbmMklnelG1CTH8/8gw/vrnac9baBK+6yhWSYrCzKI=
 github.com/cloudflare/circl v1.6.5 h1:O64F26HEqNhznd/hrC5KZXVKYuKM2rx4deZDTc4ihQA=
 github.com/cloudflare/circl v1.6.5/go.mod h1:h5LNyxAc5nTue9DS5jT+48en2PSDYt3zdGnz5OstK6c=
 golang.org/x/crypto v0.54.0 h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw=

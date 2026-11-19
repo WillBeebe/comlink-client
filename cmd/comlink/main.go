@@ -16,7 +16,7 @@ import (
 	"comlink/internal/handset"
 )
 
-var version = "2.0.0"
+var version = "2.0.1"
 const endpointDefault = "https://api.comlink.fyi/mcp"
 const rootsJSON = "{\"xqkio6o9\":\"rlSTpfAC2sR2AJLINTwTVchXuG+fynoIGPR/CvyAWBM=\"}\n"
 
