@@ -1,3 +1,17 @@
+# 2.0.0
+
+Upgrades the Comlink handset and agreement engine to Nexum `v2.0.0`
+(`ProtocolVersionV2` reviewed evidence manifests, explicit `incomplete`
+closeouts, three-party witnessed agreements, host monotonic height wiring, and
+hardened peer-ack convergence tracking in `internal/agreement`). Rejects
+unknown `CommandHash`, unknown/stale `ReceiptHead`, and incompatible `Phase`
+peer acknowledgments, fails closed on corrupt `.peersync` state, and
+reconstructs pending peer-sync obligations from `ProtocolStore` on recovery.
+Collaboration examples in `examples/` pin `github.com/WillBeebe/nexum/v2@v2.0.0`.
+
+Upgrade explicitly and keep the existing profile. Restart the MCP host so it
+refreshes its tool list. Linux and macOS, amd64 and arm64.
+
 # 0.3.0-beta.5
 
 Accepts agreement events and sends them as `agree` packets. Agreement tools

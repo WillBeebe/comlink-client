@@ -5,9 +5,9 @@ p=argparse.ArgumentParser(description='Build an immutable candidate client relea
 p.add_argument('--version',required=True)
 p.add_argument('--out',type=Path,required=True)
 a=p.parse_args()
-if not re.fullmatch(r'0\.[0-9]+\.[0-9]+-beta\.[0-9]+',a.version):raise RuntimeError('explicit beta version required')
+if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:-beta\.[0-9]+)?',a.version):raise RuntimeError('explicit semver version required')
 out=a.out.resolve();out.mkdir(parents=True,exist_ok=False)
-expected_nex='4f09951bde45e9297951428c456417ea4aab7d04'
+expected_nex='5695da3c08262a96eb094023a1bc64802580a8b7'
 actual=subprocess.check_output(['git','-C',str(root.parent/'nex'),'rev-parse','HEAD'],text=True).strip()
 if actual!=expected_nex: raise RuntimeError('exact approved private Nex revision required')
 if subprocess.check_output(['git','-C',str(root.parent/'nex'),'status','--porcelain'],text=True).strip(): raise RuntimeError('clean private Nex checkout required')

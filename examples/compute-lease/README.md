@@ -14,7 +14,7 @@ go test -race ./compute-lease
 ```
 
 These are real Nexum-backed applications, not standalone standard-library files.
-The public client import is `github.com/WillBeebe/nexum/nex`. Local helpers only
+The public client import is `github.com/WillBeebe/nexum/v2/nex`. Local helpers only
 forward to that API and format output; they do not implement another kernel.
 
 The module pins Nexum v0.1.0. During private beta, configure authenticated

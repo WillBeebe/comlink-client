@@ -10,7 +10,7 @@ import tempfile
 
 EXAMPLES = Path(__file__).resolve().parent
 NAMES = ('work-bounty', 'compute-lease', 'delegation', 'knowledge-exchange', 'collective-fund')
-MODULE = 'github.com/WillBeebe/nexum'
+MODULE = 'github.com/WillBeebe/nexum/v2'
 
 
 def main():

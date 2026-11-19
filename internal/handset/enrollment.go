@@ -193,7 +193,11 @@ func EnrollmentOperation(ctx context.Context, cfg Config, endpoint, ca, purpose,
 		return admission.Enrollment{}, admission.ErrDenied
 	}
 	if challenge.Binding != nil {
-		expected, e := challenge.Binding.WithSignature(challenge.Owner.ID(), proof.BindingSignature)
+		signed, e := challenge.Binding.WithSignature(challenge.Owner.ID(), proof.BindingSignature)
+		if e != nil {
+			return admission.Enrollment{}, admission.ErrDenied
+		}
+		expected, e := signed.VerifiedActive()
 		if e != nil || !equal(expected, result.Binding) || result.Revoked {
 			return admission.Enrollment{}, admission.ErrDenied
 		}

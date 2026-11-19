@@ -318,10 +318,16 @@ func (p *Phone) Act(ctx context.Context, id, action, text string) error {
 		var state circuit.State
 		state, e = circuit.Apply(c.State, packet)
 		if e == nil {
-			c.State = state
 			if action == "answer" {
-				c.Key, e = circuit.Key(c.Private, c.State.Dial.Key, c.State)
-				c.Private = nil
+				var key []byte
+				key, e = circuit.Key(c.Private, state.Dial.Key, state)
+				if e == nil {
+					c.State = state
+					c.Key = key
+					c.Private = nil
+				}
+			} else {
+				c.State = state
 			}
 		}
 	}
@@ -448,7 +454,9 @@ func (p *Phone) receive(event Event) {
 	p.mu.Unlock()
 	skipNotify := packet.Type == "agree" && agreementPlain == nil
 	if e == nil && agreementPlain != nil {
-		if agreements == nil || agreements.Incoming(agreementPlain, agreementSender) != nil {
+		if agreements == nil {
+			skipNotify = true
+		} else if _, _, incErr := agreements.IncomingWithAck(agreementPlain, agreementSender); incErr != nil {
 			skipNotify = true
 		} else {
 			event.Type = "agreement"

@@ -112,20 +112,20 @@ func (r ChallengeRequest) valid(audience string, now time.Time) bool {
 }
 
 type Challenge struct {
-	Version      int                `json:"version"`
-	Generation   int64              `json:"generation"`
-	ID           string             `json:"id"`
-	Purpose      string             `json:"purpose"`
-	Audience     string             `json:"audience"`
-	Owner        circuit.Public     `json:"owner"`
-	SubscriberID string             `json:"subscriber_id"`
-	Credential   circuit.Credential `json:"credential"`
-	Binding      *identity.Binding  `json:"binding,omitempty"`
-	Policy       *CallPolicy        `json:"policy,omitempty"`
-	Issuer       circuit.Public     `json:"issuer"`
-	At           time.Time          `json:"at"`
-	ExpiresAt    time.Time          `json:"expires_at"`
-	Signature    []byte             `json:"signature"`
+	Version      int                    `json:"version"`
+	Generation   int64                  `json:"generation"`
+	ID           string                 `json:"id"`
+	Purpose      string                 `json:"purpose"`
+	Audience     string                 `json:"audience"`
+	Owner        circuit.Public         `json:"owner"`
+	SubscriberID string                 `json:"subscriber_id"`
+	Credential   circuit.Credential     `json:"credential"`
+	Binding      *identity.BindingDraft `json:"binding,omitempty"`
+	Policy       *CallPolicy            `json:"policy,omitempty"`
+	Issuer       circuit.Public         `json:"issuer"`
+	At           time.Time              `json:"at"`
+	ExpiresAt    time.Time              `json:"expires_at"`
+	Signature    []byte                 `json:"signature"`
 }
 type Completion struct {
 	ChallengeID      string `json:"challenge_id"`

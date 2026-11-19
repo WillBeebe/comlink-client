@@ -1,5 +1,5 @@
-// Package agreement keeps a Protocol store and adapter outbox beside a handset
-// profile. Signed Nexum commands ride in encrypted agree packets. Speech does not.
+// Package agreement keeps a private Protocol store and adapter outbox beside a
+// handset profile. Signed Nexum commands ride inside encrypted agree packets. Speech does not.
 package agreement
 
 import (
@@ -12,26 +12,39 @@ import (
 )
 
 const (
-	magic   = "comlink-agreement-v1\n"
-	version = 1
+	magic         = "comlink-agreement-v1\n"
+	version       = 1
+	ackSignDomain = "comlink-agreement-ack/v1"
 )
 
 const (
 	kindOpen  = "open"
 	kindApply = "apply"
+	kindAck   = "ack"
 )
 
-// Envelope is the versioned object carried inside an encrypted say.
+// AckPayload is signed by the receiving endpoint after durably applying an open
+// or apply envelope to its local ProtocolStore. It contains zero speech.
+type AckPayload struct {
+	ProtocolID  string `json:"protocol_id"`
+	CommandHash string `json:"command_hash"`
+	ReceiptHead string `json:"receipt_head"`
+	Phase       string `json:"phase"`
+}
+
+// Envelope is the versioned object carried inside an encrypted agree packet.
 // It binds a protocol ID, command hash, and sender public key.
 // Speech never uses this prefix.
 type Envelope struct {
-	Version     int               `json:"version"`
-	Kind        string            `json:"kind"`
-	ProtocolID  string            `json:"protocol_id"`
-	Spec        *nex.ProtocolSpec `json:"spec,omitempty"`
-	Signed      []byte            `json:"signed,omitempty"`
-	Sender      nex.Public        `json:"sender"`
-	CommandHash string            `json:"command_hash"`
+	Version      int               `json:"version"`
+	Kind         string            `json:"kind"`
+	ProtocolID   string            `json:"protocol_id"`
+	Spec         *nex.ProtocolSpec `json:"spec,omitempty"`
+	Signed       []byte            `json:"signed,omitempty"`
+	Ack          *AckPayload       `json:"ack,omitempty"`
+	AckSignature []byte            `json:"ack_signature,omitempty"`
+	Sender       nex.Public        `json:"sender"`
+	CommandHash  string            `json:"command_hash"`
 }
 
 func IsEnvelope(plain []byte) bool {
@@ -63,11 +76,19 @@ func decode(plain []byte) (Envelope, error) {
 	}
 	switch env.Kind {
 	case kindOpen:
-		if env.Spec == nil || len(env.Signed) != 0 {
+		if env.Spec == nil || len(env.Signed) != 0 || env.Ack != nil {
 			return Envelope{}, adapter.ErrForeign
 		}
 	case kindApply:
-		if env.Spec != nil || len(env.Signed) == 0 {
+		if env.Spec != nil || len(env.Signed) == 0 || env.Ack != nil {
+			return Envelope{}, adapter.ErrForeign
+		}
+	case kindAck:
+		if env.Spec != nil || len(env.Signed) != 0 || env.Ack == nil || len(env.AckSignature) == 0 ||
+			env.Ack.ProtocolID != env.ProtocolID || env.Ack.CommandHash != env.CommandHash || env.Ack.ReceiptHead == "" {
+			return Envelope{}, adapter.ErrForeign
+		}
+		if err := nex.Verify(env.Sender, ackSignDomain, *env.Ack, env.AckSignature); err != nil {
 			return Envelope{}, adapter.ErrForeign
 		}
 	default:

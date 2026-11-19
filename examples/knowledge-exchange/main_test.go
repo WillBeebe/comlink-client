@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/WillBeebe/comlink-client/examples/internal/lab"
-	"github.com/WillBeebe/nexum/nex"
+	"github.com/WillBeebe/nexum/v2/nex"
 	"testing"
 	"time"
 )

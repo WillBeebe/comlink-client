@@ -1,7 +1,7 @@
 # Collaboration with Nexum and nex
 
 These five applications use the Nexum framework through its public `nex` Go
-client: `github.com/WillBeebe/nexum/nex`. There is one public module, not separate
+client: `github.com/WillBeebe/nexum/v2/nex`. There is one public module, not separate
 Nexum, nex and nexus library downloads. The helpers in `internal/lab` delegate to
 that client; the application code supplies predicates and resource policy.
 
@@ -12,7 +12,7 @@ this directory; root `go test ./...` does not include this nested module.
 
 ## Install and run
 
-The examples pin **Nexum v0.3.0**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
+The examples pin **Nexum v2.0.0**. Use Go 1.25 or newer. Both repositories are public. See the [Nexum installation guide](https://github.com/WillBeebe/nexum/blob/main/docs/INSTALL.md).
 No local Nexum checkout or module replacement is needed.
 
 From the client checkout:
@@ -51,11 +51,14 @@ Failed contract settlement preserves the receipt head and evidence, allowing a
 retry after the cause is resolved. This is in-memory atomicity, not crash recovery.
 All five examples use this pinned module; their application policies are unchanged.
 
-Nexum v0.3.0 still includes encrypted local storage and signed operation IDs.
-It also adds amount-free Protocol agreements (admission, witness review, honest
-failure return) and an optional sender adapter for lost-response reconcile and
-stopped-writer owner replacement. These five labs keep their original local
-application flow. For durable and return/handoff integration, follow the
+Nexum v2.0.0 keeps encrypted local storage and signed operation IDs, and adds
+`ProtocolVersionV2` (reviewed evidence manifests and explicit `incomplete`
+deadline closeouts), `GoalStore` / `CoordinationStore` / portable `TaskHandoff`
+proofs, durable/SQL fence coordinators in `adapter`, and canonical JSON receipt
+commitments under `github.com/WillBeebe/nexum/v2`. These five labs keep their
+original local application flow. For durable, return/handoff, and coordination
+integration, follow the
 [Nexum guide](https://github.com/WillBeebe/nexum/blob/main/docs/DURABLE_AGREEMENTS.md)
-and `go run github.com/WillBeebe/nexum/examples/durable-retry@v0.3.0`,
-`.../return-handoff@v0.3.0`, and `.../reconcile-handoff@v0.3.0`.
+and `go run github.com/WillBeebe/nexum/v2/examples/durable-retry@v2.0.0`,
+`.../return-handoff@v2.0.0`, `.../reconcile-handoff@v2.0.0`, and
+`.../coordination@v2.0.0`.
