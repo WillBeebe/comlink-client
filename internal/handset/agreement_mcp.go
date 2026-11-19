@@ -85,7 +85,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 		out := agreementToolResult{Agreement: resp, Sent: sent, Phase: resp.Phase}
 		fillAgreementView(sess, resp.AgreementID, &out)
 		if err != nil {
-			return &mcp.CallToolResult{IsError: true}, out, nil
+			return agreementErrorResult(out, err)
 		}
 		return agreementResult(out)
 	})
@@ -122,7 +122,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 		out := agreementToolResult{Agreement: resp, Phase: resp.Phase}
 		fillAgreementView(sess, in.ProtocolID, &out)
 		if err != nil {
-			return &mcp.CallToolResult{IsError: true}, out, nil
+			return agreementErrorResult(out, err)
 		}
 		if !send {
 			return agreementResult(out)
@@ -130,7 +130,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 		sent, err := sendAgreement(ctx, p, in.Call, raw)
 		out.Sent = sent
 		if err != nil {
-			return &mcp.CallToolResult{IsError: true}, out, nil
+			return agreementErrorResult(out, err)
 		}
 		fillAgreementView(sess, in.ProtocolID, &out)
 		return agreementResult(out)
@@ -168,6 +168,9 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 				one := agreementToolResult{Agreement: resp, Phase: resp.Phase}
 				fillAgreementView(sess, item.Item.AgreementID, &one)
 				if err != nil {
+					if one.Agreement.Error == "" {
+						one.Agreement.Error = err.Error()
+					}
 					sent = append(sent, one)
 					continue
 				}
@@ -175,6 +178,9 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 					ok, sendErr := sendAgreement(ctx, p, in.Call, raw)
 					one.Sent = ok
 					if sendErr != nil {
+						if one.Agreement.Error == "" {
+							one.Agreement.Error = sendErr.Error()
+						}
 						sent = append(sent, one)
 						continue
 					}
@@ -194,7 +200,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 				}
 				for _, raw := range pendingEnvs {
 					if _, sendErr := sendAgreement(ctx, p, in.Call, raw); sendErr != nil {
-						return &mcp.CallToolResult{IsError: true}, map[string]any{"reconciled": sent, "peer_envelopes_sent": peerSynced}, nil
+						return &mcp.CallToolResult{IsError: true}, map[string]any{"reconciled": sent, "peer_envelopes_sent": peerSynced, "error": sendErr.Error()}, nil
 					}
 					peerSynced++
 				}
@@ -210,7 +216,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 					if pendingEnvs, perr := sess.PendingPeerEnvelopes(peer.ID(), in.Request); perr == nil && len(pendingEnvs) > 0 {
 						for _, envBytes := range pendingEnvs {
 							if _, sendErr := sendAgreement(ctx, p, in.Call, envBytes); sendErr != nil {
-								return &mcp.CallToolResult{IsError: true}, out, nil
+								return agreementErrorResult(out, sendErr)
 							}
 						}
 						out.Sent = true
@@ -219,7 +225,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 					}
 				}
 			}
-			return &mcp.CallToolResult{IsError: true}, out, nil
+			return agreementErrorResult(out, err)
 		}
 		if in.Call == "" {
 			return agreementResult(out)
@@ -232,7 +238,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 		if len(pendingEnvs) > 0 {
 			for _, envBytes := range pendingEnvs {
 				if _, sendErr := sendAgreement(ctx, p, in.Call, envBytes); sendErr != nil {
-					return &mcp.CallToolResult{IsError: true}, out, nil
+					return agreementErrorResult(out, sendErr)
 				}
 			}
 			out.Sent = true
@@ -241,7 +247,7 @@ func addAgreementTools(server *mcp.Server, get func() (*Phone, error)) {
 			sent, sendErr := sendAgreement(ctx, p, in.Call, raw)
 			out.Sent = sent
 			if sendErr != nil {
-				return &mcp.CallToolResult{IsError: true}, out, nil
+				return agreementErrorResult(out, sendErr)
 			}
 			out.PeerEnvelopesSent = 1
 		}
@@ -299,6 +305,13 @@ func sendAgreement(ctx context.Context, p *Phone, call string, raw []byte) (bool
 
 func agreementFailed(err error) (*mcp.CallToolResult, any, error) {
 	return &mcp.CallToolResult{IsError: true, Content: []mcp.Content{&mcp.TextContent{Text: err.Error()}}}, nil, nil
+}
+
+func agreementErrorResult(out agreementToolResult, err error) (*mcp.CallToolResult, any, error) {
+	if err != nil && out.Agreement.Error == "" {
+		out.Agreement.Error = err.Error()
+	}
+	return &mcp.CallToolResult{IsError: true}, out, nil
 }
 
 func agreementResult(out agreementToolResult) (*mcp.CallToolResult, any, error) {
